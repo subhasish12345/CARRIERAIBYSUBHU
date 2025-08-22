@@ -56,6 +56,7 @@ export default function ProfilePage() {
   const { toast } = useToast();
   const [isPending, startTransition] = useTransition();
   const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
   const router = useRouter();
 
   const form = useForm<ProfileFormData>({
@@ -91,6 +92,7 @@ export default function ProfilePage() {
 
     useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      setLoading(true);
       if (user) {
         setUser(user);
         const docRef = doc(db, 'users', user.uid);
@@ -111,6 +113,7 @@ export default function ProfilePage() {
       } else {
         router.push('/login');
       }
+      setLoading(false);
     });
 
     return () => unsubscribe();
@@ -143,14 +146,6 @@ export default function ProfilePage() {
     });
   };
 
-  if (!user) {
-      return (
-          <div className="flex items-center justify-center h-full">
-              <Loader2 className="h-12 w-12 animate-spin text-primary" />
-          </div>
-      )
-  }
-
   const renderArrayFields = (
     label: string,
     fields: any[],
@@ -172,7 +167,7 @@ export default function ProfilePage() {
         <PlusCircle className="mr-2 h-4 w-4" /> Add
       </Button>
     </div>
-  )
+  );
   
   const renderMarksField = (
     label: string,
@@ -199,7 +194,15 @@ export default function ProfilePage() {
             />
         </div>
     </div>
-  )
+  );
+
+  if (loading || !user) {
+      return (
+          <div className="flex items-center justify-center h-full">
+              <Loader2 className="h-12 w-12 animate-spin text-primary" />
+          </div>
+      )
+  }
 
   return (
     <div className="space-y-8 max-w-4xl mx-auto">
@@ -316,4 +319,3 @@ export default function ProfilePage() {
     </div>
   );
 }
-
