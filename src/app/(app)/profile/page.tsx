@@ -92,6 +92,7 @@ export default function ProfilePage() {
 
     useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      setLoading(true);
       if (user) {
         setUser(user);
         const docRef = doc(db, 'users', user.uid);
@@ -109,10 +110,10 @@ export default function ProfilePage() {
             tools: profileData.tools?.map((value) => ({ value })) || [],
           });
         }
+        setLoading(false);
       } else {
         router.push('/login');
       }
-      setLoading(false);
     });
 
     return () => unsubscribe();
@@ -195,7 +196,7 @@ export default function ProfilePage() {
     </div>
   );
 
-  if (loading) {
+  if (loading || !user) {
       return (
           <div className="flex items-center justify-center h-full">
               <Loader2 className="h-12 w-12 animate-spin text-primary" />
@@ -318,3 +319,5 @@ export default function ProfilePage() {
     </div>
   );
 }
+
+    
