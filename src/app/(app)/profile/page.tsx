@@ -1,94 +1,236 @@
+
+'use client';
+
+import { useState, useEffect, useTransition } from "react";
+import { doc, getDoc, setDoc } from "firebase/firestore";
+import { useForm, useFieldArray } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { auth, db } from "@/lib/firebase";
+import type { UserProfile } from "@/types/user-profile";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import {
-    Card,
-    CardContent,
-    CardDescription,
-    CardHeader,
-    CardTitle,
-  } from "@/components/ui/card";
-  import { Button } from "@/components/ui/button";
-  import { Input } from "@/components/ui/input";
-  import { Label } from "@/components/ui/label";
-  import { Textarea } from "@/components/ui/textarea";
-  
-  export default function ProfilePage() {
-    return (
-      <div className="space-y-8 max-w-2xl mx-auto">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Your Profile</h1>
-          <p className="text-muted-foreground">
-            Keep your information up to date to get the best recommendations.
-          </p>
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { useToast } from "@/hooks/use-toast";
+import { Loader2, PlusCircle, Trash2 } from "lucide-react";
+
+const profileSchema = z.object({
+  fullName: z.string().optional(),
+  phone: z.string().optional(),
+  location: z.string().optional(),
+  bio: z.string().optional(),
+  github: z.string().url().optional().or(z.literal('')),
+  linkedin: z.string().url().optional().or(z.literal('')),
+  portfolio: z.string().url().optional().or(z.literal('')),
+  instagram: z.string().url().optional().or(z.literal('')),
+  twitter: z.string().url().optional().or(z.literal('')),
+  aicteId: z.string().optional(),
+  programmingLanguages: z.array(z.object({ value: z.string() })).optional(),
+  projects: z.array(z.object({ value: z.string() })).optional(),
+  tools: z.array(z.object({ value: z.string() })).optional(),
+});
+
+type ProfileFormData = z.infer<typeof profileSchema>;
+
+export default function ProfilePage() {
+  const { toast } = useToast();
+  const [isPending, startTransition] = useTransition();
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
+  const [userId, setUserId] = useState<string | null>(null);
+
+  const form = useForm<ProfileFormData>({
+    resolver: zodResolver(profileSchema),
+    defaultValues: {
+      fullName: "",
+      phone: "",
+      location: "",
+      bio: "",
+      github: "",
+      linkedin: "",
+      portfolio: "",
+      instagram: "",
+      twitter: "",
+      aicteId: "",
+      programmingLanguages: [],
+      projects: [],
+      tools: [],
+    },
+  });
+
+  const { fields: plFields, append: plAppend, remove: plRemove } = useFieldArray({ control: form.control, name: "programmingLanguages" });
+  const { fields: projFields, append: projAppend, remove: projRemove } = useFieldArray({ control: form.control, name: "projects" });
+  const { fields: toolFields, append: toolAppend, remove: toolRemove } = useFieldArray({ control: form.control, name: "tools" });
+
+  useEffect(() => {
+    const unsubscribe = auth.onAuthStateChanged(async (user) => {
+      if (user) {
+        setUserId(user.uid);
+        const docRef = doc(db, "users", user.uid);
+        const docSnap = await getDoc(docRef);
+        if (docSnap.exists()) {
+          const profileData = docSnap.data() as UserProfile;
+          setUserProfile(profileData);
+          form.reset({
+            ...profileData,
+            programmingLanguages: profileData.programmingLanguages?.map(value => ({ value })) || [],
+            projects: profileData.projects?.map(value => ({ value })) || [],
+            tools: profileData.tools?.map(value => ({ value })) || [],
+          });
+        }
+      } else {
+        setUserId(null);
+        setUserProfile(null);
+      }
+    });
+    return () => unsubscribe();
+  }, [form]);
+
+  const onSubmit = (data: ProfileFormData) => {
+    if (!userId) {
+      toast({ variant: "destructive", title: "Error", description: "You must be logged in to update your profile." });
+      return;
+    }
+
+    startTransition(async () => {
+      try {
+        const profileToSave: Omit<UserProfile, 'id' | 'email'> = {
+            ...data,
+            programmingLanguages: data.programmingLanguages?.map(item => item.value),
+            projects: data.projects?.map(item => item.value),
+            tools: data.tools?.map(item => item.value),
+        };
+        await setDoc(doc(db, "users", userId), profileToSave, { merge: true });
+        toast({ title: "Success", description: "Your profile has been updated successfully." });
+      } catch (error) {
+        console.error("Error updating profile:", error);
+        toast({ variant: "destructive", title: "Error", description: "Failed to update profile. Please try again." });
+      }
+    });
+  };
+
+  if (!userId) {
+      return (
+          <div className="flex items-center justify-center h-full">
+              <Loader2 className="h-12 w-12 animate-spin text-primary" />
+          </div>
+      )
+  }
+
+  const renderArrayFields = (
+    label: string,
+    fields: any[],
+    append: (val: { value: string }) => void,
+    remove: (index: number) => void,
+    name: keyof ProfileFormData
+  ) => (
+    <div className="space-y-2">
+      <Label>{label}</Label>
+      {fields.map((field, index) => (
+        <div key={field.id} className="flex items-center gap-2">
+          <Input {...form.register(`${name}.${index}.value` as const)} />
+          <Button type="button" variant="ghost" size="icon" onClick={() => remove(index)}>
+            <Trash2 className="h-4 w-4" />
+          </Button>
         </div>
-  
+      ))}
+      <Button type="button" variant="outline" size="sm" onClick={() => append({ value: "" })}>
+        <PlusCircle className="mr-2 h-4 w-4" /> Add
+      </Button>
+    </div>
+  )
+
+  return (
+    <div className="space-y-8 max-w-4xl mx-auto">
+      <div>
+        <h1 className="text-3xl font-bold tracking-tight">Your Profile</h1>
+        <p className="text-muted-foreground">
+          Keep your information up to date to get the best recommendations.
+        </p>
+      </div>
+
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
         <Card>
           <CardHeader>
             <CardTitle>Personal Information</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="firstName">First Name</Label>
-                <Input id="firstName" defaultValue="Alex" />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="lastName">Last Name</Label>
-                <Input id="lastName" defaultValue="Doe" />
-              </div>
+          <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            <div className="space-y-2">
+              <Label htmlFor="fullName">Full Name</Label>
+              <Input id="fullName" {...form.register("fullName")} />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <Input id="email" type="email" defaultValue="alex.doe@example.com" />
+              <Label htmlFor="phone">Phone Number</Label>
+              <Input id="phone" {...form.register("phone")} />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="location">Location</Label>
+              <Input id="location" {...form.register("location")} />
+            </div>
+            <div className="space-y-2 sm:col-span-2">
+              <Label htmlFor="bio">Biography</Label>
+              <Textarea id="bio" {...form.register("bio")} />
             </div>
           </CardContent>
         </Card>
-  
+        
         <Card>
           <CardHeader>
-            <CardTitle>Professional Details</CardTitle>
-            <CardDescription>
-              This information helps us tailor career suggestions.
-            </CardDescription>
+            <CardTitle>Professional & Social Links</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             <div className="space-y-2">
-              <Label htmlFor="education">Education</Label>
-              <Textarea
-                id="education"
-                placeholder="e.g., B.S. in Computer Science, University of Example (2018-2022)"
-                defaultValue="B.S. in Computer Science, University of Example (2018-2022)"
-              />
+              <Label htmlFor="github">GitHub</Label>
+              <Input id="github" {...form.register("github")} placeholder="https://github.com/username" />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="skills">Skills</Label>
-              <Textarea
-                id="skills"
-                placeholder="Enter your skills, separated by commas"
-                defaultValue="Python, Graphic Design, Project Management, React, TypeScript"
-              />
+              <Label htmlFor="linkedin">LinkedIn</Label>
+              <Input id="linkedin" {...form.register("linkedin")} placeholder="https://linkedin.com/in/username" />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="interests">Interests</Label>
-              <Textarea
-                id="interests"
-                placeholder="Enter your interests, separated by commas"
-                defaultValue="Technology, Art, Helping Others, Open Source"
-              />
+              <Label htmlFor="portfolio">Portfolio</Label>
+              <Input id="portfolio" {...form.register("portfolio")} placeholder="https://your-portfolio.com" />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="goals">Career Goals</Label>
-              <Textarea
-                id="goals"
-                placeholder="Describe your short-term and long-term career goals"
-                defaultValue="To become a senior software engineer in a tech-for-good company within 5 years."
-              />
+              <Label htmlFor="twitter">Twitter (X)</Label>
+              <Input id="twitter" {...form.register("twitter")} placeholder="https://twitter.com/username" />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="instagram">Instagram</Label>
+              <Input id="instagram" {...form.register("instagram")} placeholder="https://instagram.com/username" />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="aicteId">AICTE ID</Label>
+              <Input id="aicteId" {...form.register("aicteId")} />
             </div>
           </CardContent>
         </Card>
-  
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Skills</CardTitle>
+          </CardHeader>
+          <CardContent className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {renderArrayFields("Programming Languages", plFields, plAppend, plRemove, "programmingLanguages")}
+            {renderArrayFields("Projects", projFields, projAppend, projRemove, "projects")}
+            {renderArrayFields("Tools & Technologies", toolFields, toolAppend, toolRemove, "tools")}
+          </CardContent>
+        </Card>
+
         <div className="flex justify-end">
-          <Button>Save Changes</Button>
+          <Button type="submit" disabled={isPending}>
+            {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            Save Changes
+          </Button>
         </div>
-      </div>
-    );
-  }
-  
+      </form>
+    </div>
+  );
+}
