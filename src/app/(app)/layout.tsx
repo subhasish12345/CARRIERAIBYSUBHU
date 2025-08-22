@@ -65,9 +65,7 @@ function AppSidebar() {
 function AppHeader() {
   return (
     <header className="sticky top-0 z-10 flex h-14 items-center gap-4 border-b bg-card px-4 sm:h-16 sm:px-6">
-      <SidebarTrigger variant="outline" size="icon" className="sm:hidden">
-        <AppLogo />
-      </SidebarTrigger>
+      <SidebarTrigger variant="outline" size="icon" className="sm:hidden" />
       <div className="flex-1" />
       <UserNav />
     </header>
@@ -75,19 +73,23 @@ function AppHeader() {
 }
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
-    const [isClient, setIsClient] = React.useState(false);
+  const [isClient, setIsClient] = React.useState(false);
 
-    React.useEffect(() => {
-        setIsClient(true);
-    }, []);
+  React.useEffect(() => {
+    setIsClient(true);
+  }, []);
+
+  if (!isClient) {
+    return null;
+  }
 
   return (
     <SidebarProvider>
-        {isClient && <AppSidebar />}
-        <div className="flex flex-1 flex-col">
-          {isClient && <AppHeader />}
-          <main className="flex-1 p-4 sm:p-6 lg:p-8">{children}</main>
-        </div>
+      <AppSidebar />
+      <div className="flex flex-1 flex-col">
+        <AppHeader />
+        <main className="flex-1 p-4 sm:p-6 lg:p-8">{children}</main>
+      </div>
     </SidebarProvider>
   );
 }

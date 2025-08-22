@@ -2,10 +2,12 @@
 'use client';
 
 import { useState, useEffect, useTransition } from "react";
+import { useRouter } from 'next/navigation';
 import { doc, getDoc, setDoc } from "firebase/firestore";
 import { useForm, useFieldArray, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import { onAuthStateChanged, User } from 'firebase/auth';
 import { auth, db } from "@/lib/firebase";
 import type { UserProfile } from "@/types/user-profile";
 import { Button } from "@/components/ui/button";
@@ -53,8 +55,8 @@ type ProfileFormData = z.infer<typeof profileSchema>;
 export default function ProfilePage() {
   const { toast } = useToast();
   const [isPending, startTransition] = useTransition();
-  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
-  const [userId, setUserId] = useState<string | null>(null);
+  const [user, setUser] = useState<User | null>(null);
+  const router = useRouter();
 
   const form = useForm<ProfileFormData>({
     resolver: zodResolver(profileSchema),
@@ -87,36 +89,35 @@ export default function ProfilePage() {
   const { fields: projFields, append: projAppend, remove: projRemove } = useFieldArray({ control: form.control, name: "projects" });
   const { fields: toolFields, append: toolAppend, remove: toolRemove } = useFieldArray({ control: form.control, name: "tools" });
 
-  useEffect(() => {
-    const unsubscribe = auth.onAuthStateChanged(async (user) => {
+    useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
-        setUserId(user.uid);
-        const docRef = doc(db, "users", user.uid);
+        setUser(user);
+        const docRef = doc(db, 'users', user.uid);
         const docSnap = await getDoc(docRef);
         if (docSnap.exists()) {
           const profileData = docSnap.data() as UserProfile;
-          setUserProfile(profileData);
           form.reset({
             ...profileData,
-            internships: profileData.internships?.map(value => ({ value })) || [],
-            certifications: profileData.certifications?.map(value => ({ value })) || [],
-            courses: profileData.courses?.map(value => ({ value })) || [],
-            languages: profileData.languages?.map(value => ({ value })) || [],
-            programmingLanguages: profileData.programmingLanguages?.map(value => ({ value })) || [],
-            projects: profileData.projects?.map(value => ({ value })) || [],
-            tools: profileData.tools?.map(value => ({ value })) || [],
+            internships: profileData.internships?.map((value) => ({ value })) || [],
+            certifications: profileData.certifications?.map((value) => ({ value })) || [],
+            courses: profileData.courses?.map((value) => ({ value })) || [],
+            languages: profileData.languages?.map((value) => ({ value })) || [],
+            programmingLanguages: profileData.programmingLanguages?.map((value) => ({ value })) || [],
+            projects: profileData.projects?.map((value) => ({ value })) || [],
+            tools: profileData.tools?.map((value) => ({ value })) || [],
           });
         }
       } else {
-        setUserId(null);
-        setUserProfile(null);
+        router.push('/login');
       }
     });
+
     return () => unsubscribe();
-  }, [form]);
+  }, [form, router]);
 
   const onSubmit = (data: ProfileFormData) => {
-    if (!userId) {
+    if (!user) {
       toast({ variant: "destructive", title: "Error", description: "You must be logged in to update your profile." });
       return;
     }
@@ -133,7 +134,7 @@ export default function ProfilePage() {
             projects: data.projects?.map(item => item.value),
             tools: data.tools?.map(item => item.value),
         };
-        await setDoc(doc(db, "users", userId), profileToSave, { merge: true });
+        await setDoc(doc(db, "users", user.uid), profileToSave, { merge: true });
         toast({ title: "Success", description: "Your profile has been updated successfully." });
       } catch (error) {
         console.error("Error updating profile:", error);
@@ -142,7 +143,7 @@ export default function ProfilePage() {
     });
   };
 
-  if (!userId) {
+  if (!user) {
       return (
           <div className="flex items-center justify-center h-full">
               <Loader2 className="h-12 w-12 animate-spin text-primary" />
