@@ -3,7 +3,7 @@
 
 import { useState, useEffect, useTransition } from "react";
 import { doc, getDoc, setDoc } from "firebase/firestore";
-import { useForm, useFieldArray } from "react-hook-form";
+import { useForm, useFieldArray, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { auth, db } from "@/lib/firebase";
@@ -21,6 +21,7 @@ import {
 } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, PlusCircle, Trash2 } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 const profileSchema = z.object({
   fullName: z.string().optional(),
@@ -33,6 +34,15 @@ const profileSchema = z.object({
   instagram: z.string().url().optional().or(z.literal('')),
   twitter: z.string().url().optional().or(z.literal('')),
   aicteId: z.string().optional(),
+  tenthMarks: z.object({ value: z.coerce.number().optional(), type: z.enum(['percentage', 'cgpa']).default('percentage') }).optional(),
+  twelfthMarks: z.object({ value: z.coerce.number().optional(), type: z.enum(['percentage', 'cgpa']).default('percentage') }).optional(),
+  diplomaMarks: z.object({ value: z.coerce.number().optional(), type: z.enum(['percentage', 'cgpa']).default('percentage') }).optional(),
+  graduationMarks: z.object({ value: z.coerce.number().optional(), type: z.enum(['percentage', 'cgpa']).default('percentage') }).optional(),
+  internships: z.array(z.object({ value: z.string() })).optional(),
+  certifications: z.array(z.object({ value: z.string() })).optional(),
+  courses: z.array(z.object({ value: z.string() })).optional(),
+  communicationSkills: z.string().optional(),
+  languages: z.array(z.object({ value: z.string() })).optional(),
   programmingLanguages: z.array(z.object({ value: z.string() })).optional(),
   projects: z.array(z.object({ value: z.string() })).optional(),
   tools: z.array(z.object({ value: z.string() })).optional(),
@@ -59,12 +69,20 @@ export default function ProfilePage() {
       instagram: "",
       twitter: "",
       aicteId: "",
+      internships: [],
+      certifications: [],
+      courses: [],
+      languages: [],
       programmingLanguages: [],
       projects: [],
       tools: [],
     },
   });
 
+  const { fields: internshipFields, append: internshipAppend, remove: internshipRemove } = useFieldArray({ control: form.control, name: "internships" });
+  const { fields: certificationFields, append: certificationAppend, remove: certificationRemove } = useFieldArray({ control: form.control, name: "certifications" });
+  const { fields: courseFields, append: courseAppend, remove: courseRemove } = useFieldArray({ control: form.control, name: "courses" });
+  const { fields: languageFields, append: languageAppend, remove: languageRemove } = useFieldArray({ control: form.control, name: "languages" });
   const { fields: plFields, append: plAppend, remove: plRemove } = useFieldArray({ control: form.control, name: "programmingLanguages" });
   const { fields: projFields, append: projAppend, remove: projRemove } = useFieldArray({ control: form.control, name: "projects" });
   const { fields: toolFields, append: toolAppend, remove: toolRemove } = useFieldArray({ control: form.control, name: "tools" });
@@ -80,6 +98,10 @@ export default function ProfilePage() {
           setUserProfile(profileData);
           form.reset({
             ...profileData,
+            internships: profileData.internships?.map(value => ({ value })) || [],
+            certifications: profileData.certifications?.map(value => ({ value })) || [],
+            courses: profileData.courses?.map(value => ({ value })) || [],
+            languages: profileData.languages?.map(value => ({ value })) || [],
             programmingLanguages: profileData.programmingLanguages?.map(value => ({ value })) || [],
             projects: profileData.projects?.map(value => ({ value })) || [],
             tools: profileData.tools?.map(value => ({ value })) || [],
@@ -103,6 +125,10 @@ export default function ProfilePage() {
       try {
         const profileToSave: Omit<UserProfile, 'id' | 'email'> = {
             ...data,
+            internships: data.internships?.map(item => item.value),
+            certifications: data.certifications?.map(item => item.value),
+            courses: data.courses?.map(item => item.value),
+            languages: data.languages?.map(item => item.value),
             programmingLanguages: data.programmingLanguages?.map(item => item.value),
             projects: data.projects?.map(item => item.value),
             tools: data.tools?.map(item => item.value),
@@ -144,6 +170,33 @@ export default function ProfilePage() {
       <Button type="button" variant="outline" size="sm" onClick={() => append({ value: "" })}>
         <PlusCircle className="mr-2 h-4 w-4" /> Add
       </Button>
+    </div>
+  )
+  
+  const renderMarksField = (
+    label: string,
+    name: "tenthMarks" | "twelfthMarks" | "diplomaMarks" | "graduationMarks"
+  ) => (
+    <div className="space-y-2">
+        <Label>{label}</Label>
+        <div className="flex gap-2">
+            <Input type="number" step="0.01" {...form.register(`${name}.value`)} placeholder="Marks" />
+            <Controller
+                control={form.control}
+                name={`${name}.type`}
+                render={({ field }) => (
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <SelectTrigger>
+                            <SelectValue placeholder="Type" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="percentage">Percentage</SelectItem>
+                            <SelectItem value="cgpa">CGPA</SelectItem>
+                        </SelectContent>
+                    </Select>
+                )}
+            />
+        </div>
     </div>
   )
 
@@ -212,12 +265,40 @@ export default function ProfilePage() {
             </div>
           </CardContent>
         </Card>
+        
+        <Card>
+            <CardHeader>
+                <CardTitle>Education</CardTitle>
+            </CardHeader>
+            <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                {renderMarksField("10th Marks", "tenthMarks")}
+                {renderMarksField("12th Marks", "twelfthMarks")}
+                {renderMarksField("Diploma Marks", "diplomaMarks")}
+                {renderMarksField("Graduation Marks", "graduationMarks")}
+            </CardContent>
+        </Card>
+
+        <Card>
+            <CardHeader>
+                <CardTitle>Experience & Learning</CardTitle>
+            </CardHeader>
+            <CardContent className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                {renderArrayFields("Internships", internshipFields, internshipAppend, internshipRemove, "internships")}
+                {renderArrayFields("Certifications", certificationFields, certificationAppend, certificationRemove, "certifications")}
+                {renderArrayFields("Courses", courseFields, courseAppend, courseRemove, "courses")}
+            </CardContent>
+        </Card>
 
         <Card>
           <CardHeader>
             <CardTitle>Skills</CardTitle>
           </CardHeader>
           <CardContent className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="space-y-2">
+                <Label htmlFor="communicationSkills">Communication Skills</Label>
+                <Input id="communicationSkills" {...form.register("communicationSkills")} />
+            </div>
+            {renderArrayFields("Languages Known", languageFields, languageAppend, languageRemove, "languages")}
             {renderArrayFields("Programming Languages", plFields, plAppend, plRemove, "programmingLanguages")}
             {renderArrayFields("Projects", projFields, projAppend, projRemove, "projects")}
             {renderArrayFields("Tools & Technologies", toolFields, toolAppend, toolRemove, "tools")}
@@ -234,3 +315,4 @@ export default function ProfilePage() {
     </div>
   );
 }
+
