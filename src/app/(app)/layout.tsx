@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import React from "react";
 import {
   Briefcase,
   FileText,
@@ -74,11 +75,17 @@ function AppHeader() {
 }
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
+    const [isClient, setIsClient] = React.useState(false);
+
+    React.useEffect(() => {
+        setIsClient(true);
+    }, []);
+
   return (
     <SidebarProvider>
-        <AppSidebar />
+        {isClient && <AppSidebar />}
         <div className="flex flex-1 flex-col">
-          <AppHeader />
+          {isClient && <AppHeader />}
           <main className="flex-1 p-4 sm:p-6 lg:p-8">{children}</main>
         </div>
     </SidebarProvider>
