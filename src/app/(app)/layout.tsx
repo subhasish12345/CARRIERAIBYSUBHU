@@ -64,10 +64,8 @@ function AppSidebar() {
 function AppHeader() {
   return (
     <header className="sticky top-0 z-10 flex h-14 items-center gap-4 border-b bg-card px-4 sm:h-16 sm:px-6">
-      <SidebarTrigger asChild>
-        <Button size="icon" variant="outline" className="sm:hidden">
-          <AppLogo />
-        </Button>
+      <SidebarTrigger variant="outline" size="icon" className="sm:hidden">
+        <AppLogo />
       </SidebarTrigger>
       <div className="flex-1" />
       <UserNav />
