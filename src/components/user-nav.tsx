@@ -3,7 +3,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { onAuthStateChanged, User as FirebaseUser } from "firebase/auth";
+import { onAuthStateChanged, User as FirebaseUser, signOut } from "firebase/auth";
 import { doc, getDoc } from "firebase/firestore";
 import { auth, db } from "@/lib/firebase";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -18,6 +18,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { User, LogOut, Loader2 } from "lucide-react";
+import { useRouter } from "next/navigation";
 import type { UserProfile } from "@/types/user-profile";
 
 export function UserNav() {
@@ -25,14 +26,22 @@ export function UserNav() {
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
 
+  const router = useRouter();
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       setUser(currentUser);
       if (currentUser) {
         const docRef = doc(db, 'users', currentUser.uid);
-        const docSnap = await getDoc(docRef);
-        if (docSnap.exists()) {
-          setUserProfile(docSnap.data() as UserProfile);
+        try {
+          const docSnap = await getDoc(docRef);
+          if (docSnap.exists()) {
+            setUserProfile(docSnap.data() as UserProfile);
+          } else {
+            setUserProfile(null);
+          }
+        } catch (error) {
+          console.error("Error fetching user profile:", error);
+          setUserProfile(null);
         }
       } else {
         setUserProfile(null);
@@ -50,6 +59,15 @@ export function UserNav() {
         </div>
     );
   }
+
+  const handleLogout = async () => {
+    try {
+      await signOut(auth);
+      router.push('/login');
+    } catch (error) {
+      console.error("Error logging out:", error);
+    }
+  };
 
   return (
     <DropdownMenu>
@@ -86,11 +104,9 @@ export function UserNav() {
           </DropdownMenuItem>
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
-        <DropdownMenuItem asChild>
-          <Link href="/login">
+        <DropdownMenuItem onClick={handleLogout}>
             <LogOut className="mr-2 h-4 w-4" />
             <span>Log out</span>
-          </Link>
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
