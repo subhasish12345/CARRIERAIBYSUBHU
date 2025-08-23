@@ -17,12 +17,13 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { User, LogOut } from "lucide-react";
+import { User, LogOut, Loader2 } from "lucide-react";
 import type { UserProfile } from "@/types/user-profile";
 
 export function UserNav() {
   const [user, setUser] = useState<FirebaseUser | null>(null);
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
@@ -36,10 +37,19 @@ export function UserNav() {
       } else {
         setUserProfile(null);
       }
+      setLoading(false);
     });
 
     return () => unsubscribe();
   }, []);
+
+  if (loading) {
+    return (
+        <div className="flex items-center justify-center h-9 w-9">
+            <Loader2 className="h-5 w-5 animate-spin" />
+        </div>
+    );
+  }
 
   return (
     <DropdownMenu>
@@ -86,5 +96,3 @@ export function UserNav() {
     </DropdownMenu>
   );
 }
-
-    
