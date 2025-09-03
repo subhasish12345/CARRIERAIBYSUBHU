@@ -12,6 +12,11 @@ const firebaseConfig = {
     messagingSenderId: "622318145847",
 };
 
+// In a development environment, it's common to add localhost to the authorized domains.
+if (typeof window !== 'undefined' && window.location.hostname === 'localhost') {
+    firebaseConfig.authDomain = "localhost";
+}
+
 const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
 const db = getFirestore(app);
 const auth = getAuth(app);
