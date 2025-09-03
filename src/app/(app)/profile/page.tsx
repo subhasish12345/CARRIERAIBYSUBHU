@@ -23,6 +23,7 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, PlusCircle, Trash2 } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { getNewUserProfile } from "@/lib/user-profile";
 
 const profileSchema = z.object({
   fullName: z.string().optional(),
@@ -61,25 +62,7 @@ export default function ProfilePage() {
 
   const form = useForm<ProfileFormData>({
     resolver: zodResolver(profileSchema),
-    defaultValues: {
-      fullName: "",
-      phone: "",
-      location: "",
-      bio: "",
-      github: "",
-      linkedin: "",
-      portfolio: "",
-      instagram: "",
-      twitter: "",
-      aicteId: "",
-      internships: [],
-      certifications: [],
-      courses: [],
-      languages: [],
-      programmingLanguages: [],
-      projects: [],
-      tools: [],
-    },
+    defaultValues: getNewUserProfile(),
   });
 
   const { fields: internshipFields, append: internshipAppend, remove: internshipRemove } = useFieldArray({ control: form.control, name: "internships" });
@@ -97,7 +80,6 @@ export default function ProfilePage() {
       } else {
         router.push('/login');
       }
-      // Keep loading until we have a user and their data
     });
 
     return () => unsubscribeAuth();
@@ -110,6 +92,7 @@ export default function ProfilePage() {
         if (docSnap.exists()) {
           const profileData = docSnap.data() as UserProfile;
           form.reset({
+            ...getNewUserProfile(),
             ...profileData,
             internships: profileData.internships?.map((value) => ({ value })) || [],
             certifications: profileData.certifications?.map((value) => ({ value })) || [],
@@ -125,8 +108,6 @@ export default function ProfilePage() {
       });
       return () => unsubscribeSnapshot();
     } else if (!user) {
-        // If there's no user, we might still be waiting for auth state
-        // but if we know there is no user, stop loading.
         const unsubscribe = onAuthStateChanged(auth, (u) => {
             if(!u) setLoading(false);
         });
@@ -144,9 +125,10 @@ export default function ProfilePage() {
     startTransition(async () => {
       try {
         const profileToSave: UserProfile = {
+            ...getNewUserProfile(),
+            ...data,
             id: user.uid,
             email: user.email || '',
-            ...data,
             internships: data.internships?.map(item => item.value).filter(Boolean),
             certifications: data.certifications?.map(item => item.value).filter(Boolean),
             courses: data.courses?.map(item => item.value).filter(Boolean),

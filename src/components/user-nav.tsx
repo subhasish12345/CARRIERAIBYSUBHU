@@ -4,7 +4,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { onAuthStateChanged, User as FirebaseUser, signOut } from "firebase/auth";
-import { doc, getDoc } from "firebase/firestore";
+import { doc, getDoc, setDoc } from "firebase/firestore";
 import { auth, db } from "@/lib/firebase";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -20,6 +20,8 @@ import {
 import { User, LogOut, Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import type { UserProfile } from "@/types/user-profile";
+import { getNewUserProfile } from "@/lib/user-profile";
+
 
 export function UserNav() {
   const [user, setUser] = useState<FirebaseUser | null>(null);
@@ -31,7 +33,6 @@ export function UserNav() {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       setUser(currentUser);
       if (currentUser) {
-        // Use user's photoURL from provider if available
         const photoURL = currentUser.photoURL;
         const docRef = doc(db, 'users', currentUser.uid);
         try {
@@ -40,13 +41,7 @@ export function UserNav() {
             const profile = docSnap.data() as UserProfile;
             setUserProfile({ ...profile, photoURL });
           } else {
-             // If profile doesn't exist, create one from auth details
-            const newProfile = {
-              id: currentUser.uid,
-              email: currentUser.email || '',
-              fullName: currentUser.displayName || 'User',
-              photoURL,
-            };
+            const newProfile = getNewUserProfile(currentUser);
             await setDoc(docRef, newProfile);
             setUserProfile(newProfile);
           }
