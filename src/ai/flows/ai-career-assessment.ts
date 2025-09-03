@@ -38,7 +38,7 @@ Provide a list of 3-5 career paths and a detailed reasoning for your recommendat
 
 User Profile:
 \`\`\`json
-{{{jsonStringify this}}}
+{{{JSON.stringify this}}}
 \`\`\`
 `,
 });
