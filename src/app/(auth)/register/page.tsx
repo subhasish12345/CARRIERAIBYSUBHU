@@ -2,7 +2,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { createUserWithEmailAndPassword, sendEmailVerification, updateProfile } from "firebase/auth";
 import { auth, db } from "@/lib/firebase";
@@ -26,8 +26,14 @@ export default function RegisterPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [isClient, setIsClient] = useState(false);
   const { toast } = useToast();
   const router = useRouter();
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -104,6 +110,7 @@ export default function RegisterPage() {
         </CardDescription>
       </CardHeader>
       <CardContent>
+        {isClient ? (
         <form onSubmit={handleRegister} className="grid gap-4">
           <div className="grid grid-cols-2 gap-4">
             <div className="grid gap-2">
@@ -157,6 +164,11 @@ export default function RegisterPage() {
             Create an account
           </Button>
         </form>
+        ) : (
+          <div className="flex items-center justify-center h-80">
+            <Loader2 className="h-8 w-8 animate-spin" />
+          </div>
+        )}
         <div className="mt-4 text-center text-sm">
           Already have an account?{" "}
           <Link href="/login" className="underline">

@@ -2,7 +2,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { signInWithEmailAndPassword, sendPasswordResetEmail, signInWithPopup, GoogleAuthProvider, sendEmailVerification } from "firebase/auth";
 import { auth } from "@/lib/firebase";
@@ -37,8 +37,13 @@ export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const [isResetting, setIsResetting] = useState(false);
+  const [isClient, setIsClient] = useState(false);
   const { toast } = useToast();
   const router = useRouter();
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -163,69 +168,77 @@ export default function LoginPage() {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <form onSubmit={handleLogin} className="grid gap-4">
-          <div className="grid gap-2">
-            <Label htmlFor="email">Email</Label>
-            <Input
-              id="email"
-              type="email"
-              placeholder="m@example.com"
-              required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              disabled={isLoading || isGoogleLoading}
-            />
-          </div>
-          <div className="grid gap-2">
-            <div className="flex items-center">
-              <Label htmlFor="password">Password</Label>
-               <AlertDialog>
-                <AlertDialogTrigger asChild>
-                  <Button variant="link" type="button" className="ml-auto inline-block text-sm underline p-0 h-auto" disabled={isResetting}>
-                    Forgot your password?
-                  </Button>
-                </AlertDialogTrigger>
-                <AlertDialogContent>
-                  <AlertDialogHeader>
-                    <AlertDialogTitle>Reset Password</AlertDialogTitle>
-                    <AlertDialogDescription>
-                      Enter your email address and we'll send you a link to reset your password.
-                    </AlertDialogDescription>
-                  </AlertDialogHeader>
-                  <Input
-                    type="email"
-                    placeholder="m@example.com"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                  />
-                  <AlertDialogFooter>
-                    <AlertDialogCancel>Cancel</AlertDialogCancel>
-                    <AlertDialogAction onClick={handlePasswordReset} disabled={isResetting}>
-                      {isResetting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                      Send Reset Link
-                    </AlertDialogAction>
-                  </AlertDialogFooter>
-                </AlertDialogContent>
-              </AlertDialog>
+        {isClient ? (
+        <>
+          <form onSubmit={handleLogin} className="grid gap-4">
+            <div className="grid gap-2">
+              <Label htmlFor="email">Email</Label>
+              <Input
+                id="email"
+                type="email"
+                placeholder="m@example.com"
+                required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                disabled={isLoading || isGoogleLoading}
+              />
             </div>
-            <Input 
-              id="password" 
-              type="password" 
-              required
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              disabled={isLoading || isGoogleLoading}
-            />
-          </div>
-          <Button type="submit" className="w-full" disabled={isLoading || isGoogleLoading}>
-            {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            Login
+            <div className="grid gap-2">
+              <div className="flex items-center">
+                <Label htmlFor="password">Password</Label>
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button variant="link" type="button" className="ml-auto inline-block text-sm underline p-0 h-auto" disabled={isResetting}>
+                      Forgot your password?
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Reset Password</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        Enter your email address and we'll send you a link to reset your password.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <Input
+                      type="email"
+                      placeholder="m@example.com"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                    />
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                      <AlertDialogAction onClick={handlePasswordReset} disabled={isResetting}>
+                        {isResetting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                        Send Reset Link
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              </div>
+              <Input
+                id="password"
+                type="password"
+                required
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                disabled={isLoading || isGoogleLoading}
+              />
+            </div>
+            <Button type="submit" className="w-full" disabled={isLoading || isGoogleLoading}>
+              {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              Login
+            </Button>
+          </form>
+          <Button variant="outline" className="w-full mt-4" onClick={handleGoogleLogin} disabled={isLoading || isGoogleLoading}>
+            {isGoogleLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            Login with Google
           </Button>
-        </form>
-        <Button variant="outline" className="w-full mt-4" onClick={handleGoogleLogin} disabled={isLoading || isGoogleLoading}>
-          {isGoogleLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-          Login with Google
-        </Button>
+        </>
+        ) : (
+          <div className="flex items-center justify-center h-64">
+            <Loader2 className="h-8 w-8 animate-spin" />
+          </div>
+        )}
         <div className="mt-4 text-center text-sm">
           Don&apos;t have an account?{" "}
           <Link href="/register" className="underline">
