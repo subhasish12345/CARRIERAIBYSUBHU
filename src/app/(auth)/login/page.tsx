@@ -48,13 +48,13 @@ export default function LoginPage() {
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       
       if (!userCredential.user.emailVerified) {
-        await sendEmailVerification(userCredential.user);
         toast({
           variant: "destructive",
           title: "Email Not Verified",
-          description: "Your email is not verified. We've sent a new verification link. Please check your inbox (and spam folder).",
+          description: "Please verify your email before logging in. A new verification link has been sent to your email address. Check your inbox and spam folder.",
         });
-        await auth.signOut(); // Keep user logged out until they verify
+        await sendEmailVerification(userCredential.user);
+        await auth.signOut();
         setIsLoading(false);
         return;
       }
@@ -66,10 +66,24 @@ export default function LoginPage() {
       router.push('/dashboard');
     } catch (error: any) {
       console.error(error);
+      let description = "An unexpected error occurred. Please try again.";
+      switch (error.code) {
+        case 'auth/invalid-credential':
+        case 'auth/user-not-found':
+        case 'auth/wrong-password':
+          description = "Invalid email or password. Please check your credentials and try again.";
+          break;
+        case 'auth/too-many-requests':
+          description = "Access to this account has been temporarily disabled due to many failed login attempts. Please reset your password or try again later.";
+          break;
+        case 'auth/user-disabled':
+          description = "This account has been disabled. Please contact support.";
+          break;
+      }
       toast({
         variant: "destructive",
         title: "Login Failed",
-        description: error.message || "An unexpected error occurred.",
+        description,
       });
     } finally {
       setIsLoading(false);
@@ -88,10 +102,19 @@ export default function LoginPage() {
       router.push('/dashboard');
     } catch (error: any) {
       console.error(error);
+      let description = "An unexpected error occurred. Please try again.";
+       switch (error.code) {
+        case 'auth/popup-closed-by-user':
+          description = "The Google sign-in process was cancelled. Please try again.";
+          break;
+        case 'auth/account-exists-with-different-credential':
+          description = "An account already exists with this email. Please sign in using the method you originally used.";
+          break;
+      }
       toast({
         variant: "destructive",
         title: "Google Login Failed",
-        description: error.message || "Could not log in with Google.",
+        description,
       });
     } finally {
       setIsGoogleLoading(false);
@@ -116,10 +139,14 @@ export default function LoginPage() {
       });
     } catch (error: any) {
       console.error(error);
+      let description = "Could not send password reset email. Please try again later.";
+      if (error.code === 'auth/user-not-found') {
+        description = "No account found with this email address.";
+      }
       toast({
         variant: "destructive",
         title: "Password Reset Failed",
-        description: error.message || "Could not send password reset email.",
+        description,
       });
     } finally {
       setIsResetting(false);

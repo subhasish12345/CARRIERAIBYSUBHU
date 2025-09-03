@@ -73,10 +73,22 @@ export default function RegisterPage() {
 
     } catch (error: any) {
       console.error(error);
+      let description = "An unexpected error occurred. Please try again.";
+      switch (error.code) {
+        case 'auth/email-already-in-use':
+          description = "This email address is already in use by another account. Please log in or use a different email.";
+          break;
+        case 'auth/invalid-email':
+          description = "The email address you entered is not valid. Please check it and try again.";
+          break;
+        case 'auth/weak-password':
+          description = "The password is too weak. Please use a stronger password.";
+          break;
+      }
       toast({
         variant: "destructive",
         title: "Registration Failed",
-        description: error.message || "An unexpected error occurred.",
+        description,
       });
     } finally {
       setIsLoading(false);
