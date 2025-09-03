@@ -284,8 +284,23 @@ export default function ProfilePage() {
                 {renderArrayFields("Internships", internshipFields, internshipAppend, internshipRemove, "internships")}
                 {renderArrayFields("Certifications", certificationFields, certificationAppend, certificationRemove, "certifications")}
                 {renderArrayFields("Courses", courseFields, courseAppend, courseRemove, "courses")}
-            </p>
           </CardContent>
+        </Card>
+
+        <Card>
+            <CardHeader>
+                <CardTitle>Skills</CardTitle>
+            </CardHeader>
+            <CardContent className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                 {renderArrayFields("Programming Languages", plFields, plAppend, plRemove, "programmingLanguages")}
+                 {renderArrayFields("Languages", languageFields, languageAppend, languageRemove, "languages")}
+                 {renderArrayFields("Projects", projFields, projAppend, projRemove, "projects")}
+                 {renderArrayFields("Tools", toolFields, toolAppend, toolRemove, "tools")}
+                <div className="space-y-2 sm:col-span-2 lg:col-span-3">
+                    <Label htmlFor="communicationSkills">Communication Skills</Label>
+                    <Textarea id="communicationSkills" {...form.register("communicationSkills")} />
+                </div>
+            </CardContent>
         </Card>
 
         <div className="flex justify-end">
@@ -298,5 +313,3 @@ export default function ProfilePage() {
     </div>
   );
 }
-
-    
