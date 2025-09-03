@@ -1,23 +1,12 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
-import { z } from "zod";
 import { Loader2, Sparkles } from "lucide-react";
+import { onAuthStateChanged, User as FirebaseUser } from "firebase/auth";
+import { doc, getDoc } from "firebase/firestore";
+import { auth, db } from "@/lib/firebase";
 
 import { Button } from "@/components/ui/button";
-import {
-  Form,
-  FormControl,
-  FormDescription,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import {
   Card,
   CardContent,
@@ -27,38 +16,50 @@ import {
 } from "@/components/ui/card";
 import {
   assessCareerPaths,
-  type CareerAssessmentInput,
   type CareerAssessmentOutput,
 } from "@/ai/flows/ai-career-assessment";
 import { useToast } from "@/hooks/use-toast";
-
-const formSchema = z.object({
-  skills: z.string().min(1, "Please enter at least one skill."),
-  interests: z.string().min(1, "Please enter at least one interest."),
-  experience: z.string().min(1, "Please summarize your experience."),
-  personalityTraits: z.string().min(1, "Please list some personality traits."),
-});
+import type { UserProfile } from "@/types/user-profile";
+import { useEffect } from "react";
+import Link from "next/link";
 
 export default function CareerAssessmentPage() {
   const [isPending, startTransition] = useTransition();
   const [result, setResult] = useState<CareerAssessmentOutput | null>(null);
+  const [user, setUser] = useState<FirebaseUser | null>(null);
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
+  const [loadingProfile, setLoadingProfile] = useState(true);
   const { toast } = useToast();
 
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      skills: "",
-      interests: "",
-      experience: "",
-      personalityTraits: "",
-    },
-  });
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+      setUser(currentUser);
+      if (currentUser) {
+        const docRef = doc(db, 'users', currentUser.uid);
+        const docSnap = await getDoc(docRef);
+        if (docSnap.exists()) {
+          setUserProfile(docSnap.data() as UserProfile);
+        }
+      }
+      setLoadingProfile(false);
+    });
+    return () => unsubscribe();
+  }, []);
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
+  function handleAssess() {
+    if (!userProfile) {
+      toast({
+        variant: "destructive",
+        title: "Profile not found",
+        description: "Please complete your profile first.",
+      });
+      return;
+    }
+
     setResult(null);
     startTransition(async () => {
       try {
-        const assessmentResult = await assessCareerPaths(values as CareerAssessmentInput);
+        const assessmentResult = await assessCareerPaths(userProfile);
         setResult(assessmentResult);
       } catch (error) {
         console.error("Error during career assessment:", error);
@@ -77,96 +78,39 @@ export default function CareerAssessmentPage() {
         <CardHeader>
           <CardTitle>AI Career Assessment</CardTitle>
           <CardDescription>
-            Tell us about yourself, and our AI will suggest potential career paths for you.
+            Get career recommendations based on your profile data.
           </CardDescription>
         </CardHeader>
-        <CardContent>
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-              <FormField
-                control={form.control}
-                name="skills"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Your Skills</FormLabel>
-                    <FormControl>
-                      <Input placeholder="e.g., Python, Graphic Design, Project Management" {...field} />
-                    </FormControl>
-                    <FormDescription>
-                      Enter your skills, separated by commas.
-                    </FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="interests"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Your Interests</FormLabel>
-                    <FormControl>
-                      <Input placeholder="e.g., Technology, Art, Helping Others" {...field} />
-                    </FormControl>
-                    <FormDescription>
-                      What are you passionate about? Separate by commas.
-                    </FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-               <FormField
-                control={form.control}
-                name="personalityTraits"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Personality Traits</FormLabel>
-                    <FormControl>
-                      <Input placeholder="e.g., Creative, Analytical, Team-player" {...field} />
-                    </FormControl>
-                    <FormDescription>
-                      Describe your personality. Separate by commas.
-                    </FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="experience"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Work Experience Summary</FormLabel>
-                    <FormControl>
-                      <Textarea placeholder="Briefly describe your professional background..." {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <Button type="submit" disabled={isPending}>
-                {isPending ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Assessing...
-                  </>
-                ) : (
-                  <>
-                    <Sparkles className="mr-2 h-4 w-4" />
-                    Get Recommendations
-                  </>
-                )}
-              </Button>
-            </form>
-          </Form>
+        <CardContent className="flex flex-col items-center justify-center text-center space-y-4">
+          <p>
+            Our AI will analyze the information in your profile—skills, experience, projects, and more—to suggest potential career paths for you.
+          </p>
+          <p className="text-sm text-muted-foreground">
+            Make sure your <Link href="/profile" className="underline text-primary">profile</Link> is up-to-date for the best recommendations.
+          </p>
+          <Button onClick={handleAssess} disabled={isPending || loadingProfile} size="lg">
+            {isPending ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Assessing...
+              </>
+            ) : (
+              <>
+                <Sparkles className="mr-2 h-4 w-4" />
+                Get Recommendations
+              </>
+            )}
+          </Button>
         </CardContent>
       </Card>
       <div className="flex items-center justify-center">
-        {isPending && (
+        {(isPending || loadingProfile) && (
             <div className="flex flex-col items-center gap-4 text-center">
                 <Loader2 className="h-12 w-12 animate-spin text-primary" />
-                <h3 className="font-semibold">Analyzing your profile...</h3>
-                <p className="text-sm text-muted-foreground">Our AI is finding the best career paths for you.</p>
+                <h3 className="font-semibold">{loadingProfile ? "Loading your profile..." : "Analyzing your profile..."}</h3>
+                <p className="text-sm text-muted-foreground">
+                  {loadingProfile ? "Please wait while we fetch your data." : "Our AI is finding the best career paths for you."}
+                </p>
             </div>
         )}
         {result && (
@@ -180,11 +124,13 @@ export default function CareerAssessmentPage() {
             <CardContent className="space-y-4">
               <div>
                 <h3 className="font-semibold">Suggested Career Paths</h3>
-                <p className="text-sm">{result.careerPaths}</p>
+                <ul className="list-disc pl-5 text-sm">
+                    {result.careerPaths.map((path, index) => <li key={index}>{path}</li>)}
+                </ul>
               </div>
               <div>
                 <h3 className="font-semibold">Reasoning</h3>
-                <p className="text-sm text-muted-foreground">
+                <p className="text-sm text-muted-foreground whitespace-pre-wrap">
                   {result.reasoning}
                 </p>
               </div>

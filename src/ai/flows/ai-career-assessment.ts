@@ -10,27 +10,14 @@
 
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
+import { UserProfileSchema } from '@/types/user-profile';
 
-const CareerAssessmentInputSchema = z.object({
-  skills: z
-    .string()
-    .describe("A comma separated list of the user's skills."),
-  interests: z
-    .string()
-    .describe("A comma separated list of the user's interests."),
-  experience: z
-    .string()
-    .describe("A summary of the user's work experience."),
-  personalityTraits: z
-    .string()
-    .describe("A comma separated list of the user's personality traits."),
-});
-export type CareerAssessmentInput = z.infer<typeof CareerAssessmentInputSchema>;
+export type CareerAssessmentInput = z.infer<typeof UserProfileSchema>;
 
 const CareerAssessmentOutputSchema = z.object({
   careerPaths: z
-    .string()
-    .describe("A comma separated list of the recommended career paths."),
+    .array(z.string())
+    .describe("A list of the recommended career paths."),
   reasoning: z
     .string()
     .describe("The reasoning behind the career path recommendations."),
@@ -43,25 +30,23 @@ export async function assessCareerPaths(input: CareerAssessmentInput): Promise<C
 
 const prompt = ai.definePrompt({
   name: 'assessCareerPathsPrompt',
-  input: {schema: CareerAssessmentInputSchema},
+  input: {schema: UserProfileSchema},
   output: {schema: CareerAssessmentOutputSchema},
-  prompt: `You are a career counselor AI. You will analyze the user's skills, interests, experience, and personality traits to recommend suitable career paths.
+  prompt: `You are a career counselor AI. Analyze the user's full profile to recommend suitable career paths.
+Consider their skills (programming, languages, tools), their experience (bio, projects, internships), and their education.
+Provide a list of 3-5 career paths and a detailed reasoning for your recommendations based on the provided profile data.
 
-Skills: {{{skills}}}
-Interests: {{{interests}}}
-Experience: {{{experience}}}
-Personality Traits: {{{personalityTraits}}}
-
-Based on this information, recommend a list of career paths and explain your reasoning.
-
-Career Paths: 
-Reasoning: `,
+User Profile:
+\`\`\`json
+{{{jsonStringify this}}}
+\`\`\`
+`,
 });
 
 const assessCareerPathsFlow = ai.defineFlow(
   {
     name: 'assessCareerPathsFlow',
-    inputSchema: CareerAssessmentInputSchema,
+    inputSchema: UserProfileSchema,
     outputSchema: CareerAssessmentOutputSchema,
   },
   async input => {
