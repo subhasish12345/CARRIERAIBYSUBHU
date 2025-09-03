@@ -56,6 +56,7 @@ export default function ProfilePage() {
   const [isPending, startTransition] = useTransition();
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const [initialDataLoaded, setInitialDataLoaded] = useState(false);
   const router = useRouter();
 
   const form = useForm<ProfileFormData>({
@@ -96,14 +97,14 @@ export default function ProfilePage() {
       } else {
         router.push('/login');
       }
-      setLoading(false);
+      // Keep loading until we have a user and their data
     });
 
     return () => unsubscribeAuth();
   }, [router]);
 
   useEffect(() => {
-    if (user) {
+    if (user && !initialDataLoaded) {
       const docRef = doc(db, 'users', user.uid);
       const unsubscribeSnapshot = onSnapshot(docRef, (docSnap) => {
         if (docSnap.exists()) {
@@ -119,10 +120,19 @@ export default function ProfilePage() {
             tools: profileData.tools?.map((value) => ({ value })) || [],
           });
         }
+        setInitialDataLoaded(true);
+        setLoading(false);
       });
       return () => unsubscribeSnapshot();
+    } else if (!user) {
+        // If there's no user, we might still be waiting for auth state
+        // but if we know there is no user, stop loading.
+        const unsubscribe = onAuthStateChanged(auth, (u) => {
+            if(!u) setLoading(false);
+        });
+        return () => unsubscribe();
     }
-  }, [user, form]);
+  }, [user, initialDataLoaded, form]);
 
 
   const onSubmit = (data: ProfileFormData) => {
@@ -204,7 +214,7 @@ export default function ProfilePage() {
     </div>
   );
 
-  if (loading || !user) {
+  if (loading) {
       return (
           <div className="flex items-center justify-center h-full">
               <Loader2 className="h-12 w-12 animate-spin text-primary" />
