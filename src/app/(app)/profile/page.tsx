@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useEffect, useTransition } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from 'next/navigation';
 import { doc, onSnapshot, setDoc } from "firebase/firestore";
 import { useForm, useFieldArray, Controller } from "react-hook-form";
@@ -54,7 +54,6 @@ type ProfileFormData = z.infer<typeof profileSchema>;
 
 export default function ProfilePage() {
   const { toast } = useToast();
-  const [isPending, startTransition] = useTransition();
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [initialDataLoaded, setInitialDataLoaded] = useState(false);
@@ -64,6 +63,8 @@ export default function ProfilePage() {
     resolver: zodResolver(profileSchema),
     defaultValues: getNewUserProfile(),
   });
+  
+  const { formState: { isSubmitting } } = form;
 
   const { fields: internshipFields, append: internshipAppend, remove: internshipRemove } = useFieldArray({ control: form.control, name: "internships" });
   const { fields: certificationFields, append: certificationAppend, remove: certificationRemove } = useFieldArray({ control: form.control, name: "certifications" });
@@ -111,34 +112,32 @@ export default function ProfilePage() {
   }, [user, initialDataLoaded, form]);
 
 
-  const onSubmit = (data: ProfileFormData) => {
+  const onSubmit = async (data: ProfileFormData) => {
     if (!user) {
       toast({ variant: "destructive", title: "Error", description: "You must be logged in to update your profile." });
       return;
     }
 
-    startTransition(async () => {
-      try {
-        const profileToSave: UserProfile = {
-            ...getNewUserProfile(),
-            ...data,
-            id: user.uid,
-            email: user.email || '',
-            internships: data.internships?.map(item => item.value).filter(Boolean),
-            certifications: data.certifications?.map(item => item.value).filter(Boolean),
-            courses: data.courses?.map(item => item.value).filter(Boolean),
-            languages: data.languages?.map(item => item.value).filter(Boolean),
-            programmingLanguages: data.programmingLanguages?.map(item => item.value).filter(Boolean),
-            projects: data.projects?.map(item => item.value).filter(Boolean),
-            tools: data.tools?.map(item => item.value).filter(Boolean),
-        };
-        await setDoc(doc(db, "users", user.uid), profileToSave, { merge: true });
-        toast({ title: "Success", description: "Your profile has been updated successfully." });
-      } catch (error) {
-        console.error("Error updating profile:", error);
-        toast({ variant: "destructive", title: "Error", description: "Failed to update profile. Please try again." });
-      }
-    });
+    try {
+      const profileToSave: UserProfile = {
+          ...getNewUserProfile(),
+          ...data,
+          id: user.uid,
+          email: user.email || '',
+          internships: data.internships?.map(item => item.value).filter(Boolean),
+          certifications: data.certifications?.map(item => item.value).filter(Boolean),
+          courses: data.courses?.map(item => item.value).filter(Boolean),
+          languages: data.languages?.map(item => item.value).filter(Boolean),
+          programmingLanguages: data.programmingLanguages?.map(item => item.value).filter(Boolean),
+          projects: data.projects?.map(item => item.value).filter(Boolean),
+          tools: data.tools?.map(item => item.value).filter(Boolean),
+      };
+      await setDoc(doc(db, "users", user.uid), profileToSave, { merge: true });
+      toast({ title: "Success", description: "Your profile has been updated successfully." });
+    } catch (error) {
+      console.error("Error updating profile:", error);
+      toast({ variant: "destructive", title: "Error", description: "Failed to update profile. Please try again." });
+    }
   };
 
   const renderArrayFields = (
@@ -285,28 +284,13 @@ export default function ProfilePage() {
                 {renderArrayFields("Internships", internshipFields, internshipAppend, internshipRemove, "internships")}
                 {renderArrayFields("Certifications", certificationFields, certificationAppend, certificationRemove, "certifications")}
                 {renderArrayFields("Courses", courseFields, courseAppend, courseRemove, "courses")}
-            </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Skills</CardTitle>
-          </CardHeader>
-          <CardContent className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            <div className="space-y-2">
-                <Label htmlFor="communicationSkills">Communication Skills</Label>
-                <Input id="communicationSkills" {...form.register("communicationSkills")} />
-            </div>
-            {renderArrayFields("Languages Known", languageFields, languageAppend, languageRemove, "languages")}
-            {renderArrayFields("Programming Languages", plFields, plAppend, plRemove, "programmingLanguages")}
-            {renderArrayFields("Projects", projFields, projAppend, projRemove, "projects")}
-            {renderArrayFields("Tools & Technologies", toolFields, toolAppend, toolRemove, "tools")}
+            </p>
           </CardContent>
         </Card>
 
         <div className="flex justify-end">
-          <Button type="submit" disabled={isPending}>
-            {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+          <Button type="submit" disabled={isSubmitting}>
+            {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             Save Changes
           </Button>
         </div>
@@ -314,3 +298,5 @@ export default function ProfilePage() {
     </div>
   );
 }
+
+    
