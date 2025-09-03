@@ -3,7 +3,7 @@
 
 import { useState, useEffect, useTransition } from "react";
 import { useRouter } from 'next/navigation';
-import { doc, getDoc, setDoc, onSnapshot } from "firebase/firestore";
+import { doc, onSnapshot, setDoc } from "firebase/firestore";
 import { useForm, useFieldArray, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -17,7 +17,6 @@ import { Textarea } from "@/components/ui/textarea";
 import {
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
@@ -134,15 +133,17 @@ export default function ProfilePage() {
 
     startTransition(async () => {
       try {
-        const profileToSave: Omit<UserProfile, 'id' | 'email'> = {
+        const profileToSave: UserProfile = {
+            id: user.uid,
+            email: user.email || '',
             ...data,
-            internships: data.internships?.map(item => item.value),
-            certifications: data.certifications?.map(item => item.value),
-            courses: data.courses?.map(item => item.value),
-            languages: data.languages?.map(item => item.value),
-            programmingLanguages: data.programmingLanguages?.map(item => item.value),
-            projects: data.projects?.map(item => item.value),
-            tools: data.tools?.map(item => item.value),
+            internships: data.internships?.map(item => item.value).filter(Boolean),
+            certifications: data.certifications?.map(item => item.value).filter(Boolean),
+            courses: data.courses?.map(item => item.value).filter(Boolean),
+            languages: data.languages?.map(item => item.value).filter(Boolean),
+            programmingLanguages: data.programmingLanguages?.map(item => item.value).filter(Boolean),
+            projects: data.projects?.map(item => item.value).filter(Boolean),
+            tools: data.tools?.map(item => item.value).filter(Boolean),
         };
         await setDoc(doc(db, "users", user.uid), profileToSave, { merge: true });
         toast({ title: "Success", description: "Your profile has been updated successfully." });
@@ -158,7 +159,7 @@ export default function ProfilePage() {
     fields: any[],
     append: (val: { value: string }) => void,
     remove: (index: number) => void,
-    name: keyof ProfileFormData
+    name: "internships" | "certifications" | "courses" | "languages" | "programmingLanguages" | "projects" | "tools"
   ) => (
     <div className="space-y-2">
       <Label>{label}</Label>
@@ -188,7 +189,7 @@ export default function ProfilePage() {
                 control={form.control}
                 name={`${name}.type`}
                 render={({ field }) => (
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <Select onValueChange={field.onChange} value={field.value} defaultValue="percentage">
                         <SelectTrigger>
                             <SelectValue placeholder="Type" />
                         </SelectTrigger>
