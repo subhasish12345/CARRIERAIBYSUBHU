@@ -80,6 +80,7 @@ export default function ProfilePage() {
       } else {
         router.push('/login');
       }
+      setLoading(false);
     });
 
     return () => unsubscribeAuth();
@@ -104,14 +105,8 @@ export default function ProfilePage() {
           });
         }
         setInitialDataLoaded(true);
-        setLoading(false);
       });
       return () => unsubscribeSnapshot();
-    } else if (!user) {
-        const unsubscribe = onAuthStateChanged(auth, (u) => {
-            if(!u) setLoading(false);
-        });
-        return () => unsubscribe();
     }
   }, [user, initialDataLoaded, form]);
 
