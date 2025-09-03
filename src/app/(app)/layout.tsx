@@ -1,3 +1,4 @@
+
 "use client";
 
 import Link from "next/link";
@@ -9,11 +10,9 @@ import {
   GraduationCap,
   LayoutDashboard,
   ScanSearch,
-  User,
 } from "lucide-react";
 import { AppLogo } from "@/components/app-logo";
 import { UserNav } from "@/components/user-nav";
-import { Button } from "@/components/ui/button";
 import {
   Sidebar,
   SidebarContent,
@@ -73,16 +72,6 @@ function AppHeader() {
 }
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
-  const [isClient, setIsClient] = React.useState(false);
-
-  React.useEffect(() => {
-    setIsClient(true);
-  }, []);
-
-  if (!isClient) {
-    return null;
-  }
-
   return (
     <SidebarProvider>
       <AppSidebar />

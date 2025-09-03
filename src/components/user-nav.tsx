@@ -52,14 +52,6 @@ export function UserNav() {
     return () => unsubscribe();
   }, []);
 
-  if (loading) {
-    return (
-        <div className="flex items-center justify-center h-9 w-9">
-            <Loader2 className="h-5 w-5 animate-spin" />
-        </div>
-    );
-  }
-
   const handleLogout = async () => {
     try {
       await signOut(auth);
@@ -68,6 +60,22 @@ export function UserNav() {
       console.error("Error logging out:", error);
     }
   };
+  
+  if (loading) {
+    return (
+        <div className="flex items-center justify-center h-9 w-9">
+            <Loader2 className="h-5 w-5 animate-spin" />
+        </div>
+    );
+  }
+
+  if (!user) {
+    return (
+      <Button asChild>
+        <Link href="/login">Login</Link>
+      </Button>
+    )
+  }
 
   return (
     <DropdownMenu>
@@ -90,7 +98,7 @@ export function UserNav() {
           <div className="flex flex-col space-y-1">
             <p className="text-sm font-medium leading-none">{userProfile?.fullName || 'User'}</p>
             <p className="text-xs leading-none text-muted-foreground">
-              {user?.email || ''}
+              {user.email || ''}
             </p>
           </div>
         </DropdownMenuLabel>
@@ -112,3 +120,5 @@ export function UserNav() {
     </DropdownMenu>
   );
 }
+
+    

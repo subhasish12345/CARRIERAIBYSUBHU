@@ -90,7 +90,7 @@ export default function ProfilePage() {
   const { fields: projFields, append: projAppend, remove: projRemove } = useFieldArray({ control: form.control, name: "projects" });
   const { fields: toolFields, append: toolAppend, remove: toolRemove } = useFieldArray({ control: form.control, name: "tools" });
 
-    useEffect(() => {
+  useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       if (currentUser) {
         setUser(currentUser);
@@ -200,7 +200,7 @@ export default function ProfilePage() {
           <div className="flex items-center justify-center h-full">
               <Loader2 className="h-12 w-12 animate-spin text-primary" />
           </div>
-      )
+      );
   }
 
   return (
