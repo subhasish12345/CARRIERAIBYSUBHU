@@ -1,3 +1,4 @@
+
 'use server';
 
 /**
@@ -30,7 +31,7 @@ export async function assessCareerPaths(input: CareerAssessmentInput): Promise<C
 
 const prompt = ai.definePrompt({
   name: 'assessCareerPathsPrompt',
-  input: {schema: UserProfileSchema},
+  input: {schema: z.object({ profile: z.string() })},
   output: {schema: CareerAssessmentOutputSchema},
   prompt: `You are a career counselor AI. Analyze the user's full profile to recommend suitable career paths.
 Consider their skills (programming, languages, tools), their experience (bio, projects, internships), and their education.
@@ -38,7 +39,7 @@ Provide a list of 3-5 career paths and a detailed reasoning for your recommendat
 
 User Profile:
 \`\`\`json
-{{{JSON.stringify this}}}
+{{{profile}}}
 \`\`\`
 `,
 });
@@ -50,7 +51,7 @@ const assessCareerPathsFlow = ai.defineFlow(
     outputSchema: CareerAssessmentOutputSchema,
   },
   async input => {
-    const {output} = await prompt(input);
+    const {output} = await prompt({ profile: JSON.stringify(input, null, 2) });
     return output!;
   }
 );
