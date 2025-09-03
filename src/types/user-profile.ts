@@ -6,6 +6,7 @@ export interface UserProfile {
     phone?: string;
     location?: string;
     bio?: string;
+    photoURL?: string | null;
     github?: string;
     linkedin?: string;
     portfolio?: string;
@@ -25,4 +26,3 @@ export interface UserProfile {
     projects?: string[];
     tools?: string[];
   }
-  

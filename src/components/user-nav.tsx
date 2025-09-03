@@ -31,13 +31,24 @@ export function UserNav() {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       setUser(currentUser);
       if (currentUser) {
+        // Use user's photoURL from provider if available
+        const photoURL = currentUser.photoURL;
         const docRef = doc(db, 'users', currentUser.uid);
         try {
           const docSnap = await getDoc(docRef);
           if (docSnap.exists()) {
-            setUserProfile(docSnap.data() as UserProfile);
+            const profile = docSnap.data() as UserProfile;
+            setUserProfile({ ...profile, photoURL });
           } else {
-            setUserProfile(null);
+             // If profile doesn't exist, create one from auth details
+            const newProfile = {
+              id: currentUser.uid,
+              email: currentUser.email || '',
+              fullName: currentUser.displayName || 'User',
+              photoURL,
+            };
+            await setDoc(docRef, newProfile);
+            setUserProfile(newProfile);
           }
         } catch (error) {
           console.error("Error fetching user profile:", error);
@@ -77,18 +88,24 @@ export function UserNav() {
     )
   }
 
+  const getInitials = (name?: string) => {
+    if (!name) return <User className="h-5 w-5" />;
+    const initials = name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+    return initials;
+  }
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" className="relative h-9 w-9 rounded-full">
           <Avatar className="h-9 w-9">
             <AvatarImage
-              src="https://placehold.co/100x100.png"
-              alt="User avatar"
+              src={userProfile?.photoURL || "https://placehold.co/100x100.png"}
+              alt={userProfile?.fullName || 'User avatar'}
               data-ai-hint="profile picture"
             />
             <AvatarFallback>
-              <User className="h-5 w-5" />
+              {getInitials(userProfile?.fullName)}
             </AvatarFallback>
           </Avatar>
         </Button>
@@ -120,5 +137,3 @@ export function UserNav() {
     </DropdownMenu>
   );
 }
-
-    

@@ -3,7 +3,7 @@
 
 import { useState, useEffect, useTransition } from "react";
 import { useRouter } from 'next/navigation';
-import { doc, getDoc, setDoc } from "firebase/firestore";
+import { doc, getDoc, setDoc, onSnapshot } from "firebase/firestore";
 import { useForm, useFieldArray, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -91,11 +91,22 @@ export default function ProfilePage() {
   const { fields: toolFields, append: toolAppend, remove: toolRemove } = useFieldArray({ control: form.control, name: "tools" });
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+    const unsubscribeAuth = onAuthStateChanged(auth, (currentUser) => {
       if (currentUser) {
         setUser(currentUser);
-        const docRef = doc(db, 'users', currentUser.uid);
-        const docSnap = await getDoc(docRef);
+      } else {
+        router.push('/login');
+      }
+      setLoading(false);
+    });
+
+    return () => unsubscribeAuth();
+  }, [router]);
+
+  useEffect(() => {
+    if (user) {
+      const docRef = doc(db, 'users', user.uid);
+      const unsubscribeSnapshot = onSnapshot(docRef, (docSnap) => {
         if (docSnap.exists()) {
           const profileData = docSnap.data() as UserProfile;
           form.reset({
@@ -109,14 +120,11 @@ export default function ProfilePage() {
             tools: profileData.tools?.map((value) => ({ value })) || [],
           });
         }
-        setLoading(false);
-      } else {
-        router.push('/login');
-      }
-    });
+      });
+      return () => unsubscribeSnapshot();
+    }
+  }, [user, form]);
 
-    return () => unsubscribe();
-  }, [form, router]);
 
   const onSubmit = (data: ProfileFormData) => {
     if (!user) {
@@ -195,7 +203,7 @@ export default function ProfilePage() {
     </div>
   );
 
-  if (loading) {
+  if (loading || !user) {
       return (
           <div className="flex items-center justify-center h-full">
               <Loader2 className="h-12 w-12 animate-spin text-primary" />
@@ -318,5 +326,3 @@ export default function ProfilePage() {
     </div>
   );
 }
-
-    

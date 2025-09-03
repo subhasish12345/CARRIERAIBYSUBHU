@@ -2,7 +2,10 @@
 "use client";
 
 import Link from "next/link";
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { signInWithEmailAndPassword, sendPasswordResetEmail, signInWithPopup, GoogleAuthProvider, sendEmailVerification } from "firebase/auth";
+import { auth } from "@/lib/firebase";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -14,21 +17,115 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Loader2 } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
+
 
 export default function LoginPage() {
-  const [isClient, setIsClient] = useState(false)
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [isGoogleLoading, setIsGoogleLoading] = useState(false);
+  const [isResetting, setIsResetting] = useState(false);
+  const { toast } = useToast();
+  const router = useRouter();
 
-  useEffect(() => {
-    setIsClient(true)
-  }, [])
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
 
-  if (!isClient) {
-    return (
-        <div className="flex items-center justify-center h-full">
-            <Loader2 className="h-12 w-12 animate-spin text-primary" />
-        </div>
-    );
-  }
+    try {
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      
+      if (!userCredential.user.emailVerified) {
+        await sendEmailVerification(userCredential.user);
+        toast({
+          variant: "destructive",
+          title: "Email Not Verified",
+          description: "Your email is not verified. We've sent a new verification link. Please check your inbox (and spam folder).",
+        });
+        await auth.signOut(); // Keep user logged out until they verify
+        setIsLoading(false);
+        return;
+      }
+      
+      toast({
+        title: "Success",
+        description: "Logged in successfully!",
+      });
+      router.push('/dashboard');
+    } catch (error: any) {
+      console.error(error);
+      toast({
+        variant: "destructive",
+        title: "Login Failed",
+        description: error.message || "An unexpected error occurred.",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleGoogleLogin = async () => {
+    setIsGoogleLoading(true);
+    const provider = new GoogleAuthProvider();
+    try {
+      await signInWithPopup(auth, provider);
+      toast({
+        title: "Success",
+        description: "Logged in successfully with Google!",
+      });
+      router.push('/dashboard');
+    } catch (error: any) {
+      console.error(error);
+      toast({
+        variant: "destructive",
+        title: "Google Login Failed",
+        description: error.message || "Could not log in with Google.",
+      });
+    } finally {
+      setIsGoogleLoading(false);
+    }
+  };
+
+  const handlePasswordReset = async () => {
+    if (!email) {
+      toast({
+        variant: "destructive",
+        title: "Email Required",
+        description: "Please enter your email address to reset your password.",
+      });
+      return;
+    }
+    setIsResetting(true);
+    try {
+      await sendPasswordResetEmail(auth, email);
+      toast({
+        title: "Password Reset Email Sent",
+        description: "Please check your inbox (and spam folder) for the password reset link.",
+      });
+    } catch (error: any) {
+      console.error(error);
+      toast({
+        variant: "destructive",
+        title: "Password Reset Failed",
+        description: error.message || "Could not send password reset email.",
+      });
+    } finally {
+      setIsResetting(false);
+    }
+  };
+
 
   return (
     <Card className="mx-auto max-w-sm w-full">
@@ -39,7 +136,7 @@ export default function LoginPage() {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <div className="grid gap-4">
+        <form onSubmit={handleLogin} className="grid gap-4">
           <div className="grid gap-2">
             <Label htmlFor="email">Email</Label>
             <Input
@@ -47,27 +144,61 @@ export default function LoginPage() {
               type="email"
               placeholder="m@example.com"
               required
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              disabled={isLoading || isGoogleLoading}
             />
           </div>
           <div className="grid gap-2">
             <div className="flex items-center">
               <Label htmlFor="password">Password</Label>
-              <Link
-                href="#"
-                className="ml-auto inline-block text-sm underline"
-              >
-                Forgot your password?
-              </Link>
+               <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button variant="link" type="button" className="ml-auto inline-block text-sm underline p-0 h-auto" disabled={isResetting}>
+                    Forgot your password?
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Reset Password</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Enter your email address and we'll send you a link to reset your password.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <Input
+                    type="email"
+                    placeholder="m@example.com"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                  />
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction onClick={handlePasswordReset} disabled={isResetting}>
+                      {isResetting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                      Send Reset Link
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
             </div>
-            <Input id="password" type="password" required />
+            <Input 
+              id="password" 
+              type="password" 
+              required
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              disabled={isLoading || isGoogleLoading}
+            />
           </div>
-          <Button type="submit" className="w-full" asChild>
-            <Link href="/dashboard">Login</Link>
+          <Button type="submit" className="w-full" disabled={isLoading || isGoogleLoading}>
+            {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            Login
           </Button>
-          <Button variant="outline" className="w-full">
-            Login with Google
-          </Button>
-        </div>
+        </form>
+        <Button variant="outline" className="w-full mt-4" onClick={handleGoogleLogin} disabled={isLoading || isGoogleLoading}>
+          {isGoogleLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+          Login with Google
+        </Button>
         <div className="mt-4 text-center text-sm">
           Don&apos;t have an account?{" "}
           <Link href="/register" className="underline">
