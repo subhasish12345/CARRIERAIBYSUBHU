@@ -1,6 +1,11 @@
 
 import { z } from "zod";
 
+const MarksSchema = z.object({
+    value: z.coerce.number().nullable().optional(),
+    type: z.enum(['percentage', 'cgpa']) 
+});
+
 export const UserProfileSchema = z.object({
     id: z.string(),
     email: z.string().email(),
@@ -15,15 +20,16 @@ export const UserProfileSchema = z.object({
     instagram: z.string().url().optional().or(z.literal('')),
     twitter: z.string().url().optional().or(z.literal('')),
     aicteId: z.string().optional(),
-    tenthMarks: z.object({ value: z.coerce.number().optional(), type: z.enum(['percentage', 'cgpa']) }).optional(),
-    twelfthMarks: z.object({ value: z.coerce.number().optional(), type: z.enum(['percentage', 'cgpa']) }).optional(),
-    diplomaMarks: z.object({ value: z.coerce.number().optional(), type: z.enum(['percentage', 'cgpa']) }).optional(),
-    graduationMarks: z.object({ value: z.coerce.number().optional(), type: z.enum(['percentage', 'cgpa']) }).optional(),
+    tenthMarks: MarksSchema.optional(),
+    twelfthMarks: MarksSchema.optional(),
+    diplomaMarks: MarksSchema.optional(),
+    graduationMarks: MarksSchema.optional(),
     internships: z.array(z.string()).optional(),
     certifications: z.array(z.string()).optional(),
     courses: z.array(z.string()).optional(),
     communicationSkills: z.string().optional(),
     languages: z.array(z.string()).optional(),
+
     programmingLanguages: z.array(z.string()).optional(),
     projects: z.array(z.string()).optional(),
     tools: z.array(z.string()).optional(),

@@ -111,7 +111,7 @@ export default function ProfilePage() {
     });
 
     return () => unsubscribeSnapshot();
-}, [user, initialDataLoaded]);
+}, [user, initialDataLoaded, form]);
 
 
   const onSubmit = async (data: ProfileFormData) => {
@@ -122,11 +122,23 @@ export default function ProfilePage() {
 
     setIsSaving(true);
     try {
+      // Helper function to sanitize marks data
+      const sanitizeMarks = (marks: { value?: number, type: 'percentage' | 'cgpa' } | undefined) => {
+        if (!marks || marks.value === undefined || isNaN(marks.value)) {
+            return { value: null, type: marks?.type || 'percentage' };
+        }
+        return marks;
+      };
+
       const profileToSave: UserProfile = {
           ...getNewUserProfile(),
           ...data,
           id: user.uid,
           email: user.email || '',
+          tenthMarks: sanitizeMarks(data.tenthMarks),
+          twelfthMarks: sanitizeMarks(data.twelfthMarks),
+          diplomaMarks: sanitizeMarks(data.diplomaMarks),
+          graduationMarks: sanitizeMarks(data.graduationMarks),
           internships: data.internships?.map(item => item.value).filter(Boolean),
           certifications: data.certifications?.map(item => item.value).filter(Boolean),
           courses: data.courses?.map(item => item.value).filter(Boolean),
@@ -135,6 +147,7 @@ export default function ProfilePage() {
           projects: data.projects?.map(item => item.value).filter(Boolean),
           tools: data.tools?.map(item => item.value).filter(Boolean),
       };
+
       await setDoc(doc(db, "users", user.uid), profileToSave, { merge: true });
       toast({ title: "Update successfully", description: "Your profile has been updated successfully." });
     } catch (error) {
@@ -175,7 +188,20 @@ export default function ProfilePage() {
     <div className="space-y-2">
         <Label>{label}</Label>
         <div className="flex gap-2">
-            <Input type="number" step="0.01" {...form.register(`${name}.value`)} placeholder="Marks" />
+            <Controller
+              control={form.control}
+              name={`${name}.value`}
+              render={({ field }) => (
+                <Input 
+                  type="number" 
+                  step="0.01" 
+                  placeholder="Marks"
+                  {...field}
+                  onChange={e => field.onChange(e.target.value === '' ? undefined : parseFloat(e.target.value))}
+                  value={field.value ?? ""}
+                />
+              )}
+            />
             <Controller
                 control={form.control}
                 name={`${name}.type`}
@@ -289,7 +315,7 @@ export default function ProfilePage() {
                 {renderArrayFields("Internships", internshipFields, internshipAppend, internshipRemove, "internships")}
                 {renderArrayFields("Certifications", certificationFields, certificationAppend, certificationRemove, "certifications")}
                 {renderArrayFields("Courses", courseFields, courseAppend, courseRemove, "courses")}
-            </CardContent>
+            </a-card-content>
         </Card>
 
         <Card>
@@ -309,7 +335,8 @@ export default function ProfilePage() {
         </Card>
 
         <div className="flex justify-center py-8">
-          <Button type="submit" disabled={form.formState.isSubmitting} size="lg">
+          <Button type="submit" disabled={isSaving || !initialDataLoaded} size="lg">
+             {isSaving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
             Update
           </Button>
         </div>
