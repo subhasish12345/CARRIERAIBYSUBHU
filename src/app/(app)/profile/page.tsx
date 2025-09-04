@@ -307,7 +307,7 @@ export default function ProfilePage() {
                 {renderMarksField("10th Marks", "tenthMarks")}
                 {renderMarksField("12th Marks", "twelfthMarks")}
                 {renderMarksField("Diploma Marks", "diplomaMarks")}
-                {renderMarksfielsd("Graduation Marks", "graduationMarks")}
+                {renderMarksField("Graduation Marks", "graduationMarks")}
             </CardContent>
         </Card>
 
