@@ -204,7 +204,7 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className="space-y-8 max-w-4xl mx-auto">
+    <div className="space-y-8 max-w-4xl mx-auto animate-fade-in-up">
       <div>
         <h1 className="text-3xl font-bold tracking-tight">Your Profile</h1>
         <p className="text-muted-foreground">

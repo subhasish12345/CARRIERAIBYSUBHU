@@ -59,7 +59,7 @@ const featureCards = [
 
 export default function DashboardPage() {
   return (
-    <div className="flex flex-col gap-8">
+    <div className="flex flex-col gap-8 animate-fade-in-up">
       <div>
         <h1 className="text-3xl font-bold tracking-tight">Welcome to CareerCompass AI</h1>
         <p className="text-muted-foreground">Your personal guide to navigating your career journey.</p>

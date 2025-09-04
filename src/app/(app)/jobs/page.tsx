@@ -42,7 +42,7 @@ export default function JobListingPage() {
   }, []);
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 animate-fade-in-up">
       <div>
         <h1 className="text-3xl font-bold tracking-tight">Job Opportunities</h1>
         <p className="text-muted-foreground">

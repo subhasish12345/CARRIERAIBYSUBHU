@@ -237,7 +237,7 @@ export default function AdminPage() {
   };
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 animate-fade-in-up">
       <div className="flex items-center gap-4">
         <ShieldCheck className="h-8 w-8 text-primary" />
         <div>

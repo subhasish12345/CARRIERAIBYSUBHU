@@ -110,7 +110,7 @@ export default function ResumeOptimizerPage() {
   const isSubmitDisabled = isPending || loadingProfile || !selectedFile || !desiredCareerPath;
 
   return (
-    <div className="grid gap-6 lg:grid-cols-2">
+    <div className="grid gap-6 lg:grid-cols-2 animate-fade-in-up">
       <Card>
         <CardHeader>
           <CardTitle>Strategic Resume Optimizer</CardTitle>

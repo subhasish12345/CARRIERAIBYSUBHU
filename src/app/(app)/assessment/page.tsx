@@ -79,7 +79,7 @@ export default function CareerAssessmentPage() {
   }
 
   return (
-    <div className="grid gap-6 lg:grid-cols-2">
+    <div className="grid gap-6 lg:grid-cols-2 animate-fade-in-up">
       <Card>
         <CardHeader>
           <CardTitle>AI Career Assessment</CardTitle>
