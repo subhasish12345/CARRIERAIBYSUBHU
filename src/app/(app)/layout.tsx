@@ -2,8 +2,8 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import React from "react";
+import { usePathname, useRouter } from "next/navigation";
+import React, { useEffect } from "react";
 import {
   Briefcase,
   FileText,
@@ -12,6 +12,7 @@ import {
   ScanSearch,
   ShieldCheck,
   BookOpen,
+  Loader2,
 } from "lucide-react";
 import { AppLogo } from "@/components/app-logo";
 import { UserNav } from "@/components/user-nav";
@@ -97,6 +98,27 @@ function AppHeader() {
 }
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
+  const { user, loading } = useAuth();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!loading && !user) {
+      router.push('/login');
+    }
+  }, [user, loading, router]);
+  
+  if (loading) {
+    return (
+      <div className="flex h-screen w-screen items-center justify-center">
+        <Loader2 className="h-12 w-12 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  if (!user) {
+    return null; 
+  }
+
   return (
     <SidebarProvider>
       <AppSidebar />
@@ -107,5 +129,3 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     </SidebarProvider>
   );
 }
-
-    
