@@ -1,4 +1,6 @@
+
 import Image from "next/image";
+import Link from "next/link";
 import {
   Card,
   CardContent,
@@ -14,58 +16,139 @@ import { MapPin, Search } from "lucide-react";
 
 const jobListings = [
   {
-    title: "Senior Frontend Developer",
-    company: "Innovatech Solutions",
-    location: "Remote",
-    type: "Full-time",
-    tags: ["React", "TypeScript", "Next.js"],
+    title: "Multiple Roles",
+    company: "HCLTech",
+    location: "Across India",
+    tags: ["Graduate", "Post Graduate", "4.5-18 LPA"],
     logo: "https://placehold.co/100x100.png",
-    dataAiHint: "tech company logo"
+    dataAiHint: "tech company logo",
+    applyLink: "https://tinyurl.com/bdd45379",
   },
   {
-    title: "UX/UI Designer",
-    company: "Creative Minds Inc.",
-    location: "New York, NY",
-    type: "Contract",
-    tags: ["Figma", "Adobe XD", "User Research"],
+    title: "National Qualifier Test (NQT) 2025",
+    company: "TCS",
+    location: "Across India",
+    tags: ["2021-2027 Batch", "Any Degree", "Up to 19 LPA"],
     logo: "https://placehold.co/100x100.png",
-    dataAiHint: "design agency logo"
+    dataAiHint: "IT services company logo",
+    applyLink: "https://yt.openinapp.co/0m6rt",
   },
   {
-    title: "Product Manager",
-    company: "DataDriven Corp.",
-    location: "San Francisco, CA",
-    type: "Full-time",
-    tags: ["Agile", "Roadmap", "Data Analysis"],
+    title: "Software Application Development Apprentice",
+    company: "Google",
+    location: "Bengaluru, Hyderabad, Gurugram",
+    tags: ["Apprentice", "Freshers", "Bachelor's Degree"],
     logo: "https://placehold.co/100x100.png",
-    dataAiHint: "corporate logo"
+    dataAiHint: "google logo",
+    applyLink: "https://freshershunt.in/google-software-application-development-apprenticeship/",
   },
   {
-    title: "Cloud Solutions Architect",
-    company: "SkyHigh Cloud Services",
-    location: "Remote",
-    type: "Full-time",
-    tags: ["AWS", "Azure", "GCP"],
+    title: "Data Analytics Apprentice",
+    company: "Google",
+    location: "Bengaluru, Hyderabad, Gurugram",
+    tags: ["Apprentice", "Data Analytics", "Freshers"],
     logo: "https://placehold.co/100x100.png",
-    dataAiHint: "cloud tech logo"
+    dataAiHint: "google logo",
+    applyLink: "https://freshershunt.in/google-data-analytics-apprenticeship/",
   },
   {
-    title: "Junior Backend Engineer",
-    company: "CodeCrafters",
-    location: "Austin, TX",
-    type: "Full-time",
-    tags: ["Node.js", "Python", "PostgreSQL"],
+    title: "Web Solutions Engineer Intern",
+    company: "Google",
+    location: "Hyderabad",
+    tags: ["Internship", "Web Solutions", "Freshers"],
     logo: "https://placehold.co/100x100.png",
-    dataAiHint: "startup logo"
+    dataAiHint: "google logo",
+    applyLink: "https://freshershunt.in/google-internship-web-solutions-engineer-intern/",
   },
   {
-    title: "Marketing Specialist",
-    company: "Growth Gurus",
-    location: "Boston, MA",
-    type: "Part-time",
-    tags: ["SEO", "Content Marketing", "Social Media"],
+    title: "Multiple Roles",
+    company: "Mphasis",
+    location: "Across India",
+    tags: ["Graduate", "Post Graduate", "4.5-22 LPA"],
     logo: "https://placehold.co/100x100.png",
-    dataAiHint: "marketing company logo"
+    dataAiHint: "tech company logo",
+    applyLink: "https://pdlink.in/4omWEqn",
+  },
+  {
+    title: "New Grad Software Engineer",
+    company: "Stripe",
+    location: "Bengaluru",
+    tags: ["2026 Batch", "New Grad", "₹61.3 LPA"],
+    logo: "https://placehold.co/100x100.png",
+    dataAiHint: "fintech company logo",
+    applyLink: "https://freshershunt.in/stripe-careers-2026-software-engineering-new-grad/",
+  },
+  {
+    title: "Software Engineering AMTS",
+    company: "Salesforce",
+    location: "Bangalore & Hyderabad",
+    tags: ["2026 Batch", "Freshers", "₹15-36 LPA"],
+    logo: "https://placehold.co/100x100.png",
+    dataAiHint: "crm company logo",
+    applyLink: "https://freshershunt.in/salesforce-off-campus-drive-2025/",
+  },
+  {
+    title: "Software Engineer Intern",
+    company: "Stripe",
+    location: "Bengaluru",
+    tags: ["Internship", "Recent Batches", "Freshers"],
+    logo: "https://placehold.co/100x100.png",
+    dataAiHint: "fintech company logo",
+    applyLink: "https://freshershunt.in/stripe-internship-software-engineer-intern/",
+  },
+  {
+    title: "Software Engineer - Summer Internship",
+    company: "CISCO",
+    location: "Bangalore",
+    tags: ["2027 Pass out", "Internship", "₹41K/month"],
+    logo: "https://placehold.co/100x100.png",
+    dataAiHint: "networking company logo",
+    applyLink: "https://freshershunt.in/cisco-internship-2025/",
+  },
+  {
+    title: "Apprenticeship 2025",
+    company: "ISRO",
+    location: "Hyderabad",
+    tags: ["Diploma", "BE/B.Tech", "Any Graduate"],
+    logo: "https://placehold.co/100x100.png",
+    dataAiHint: "space agency logo",
+    applyLink: "https://freshershunt.in/isro-apprentices-2025/",
+  },
+  {
+    title: "Software Engineer",
+    company: "HCL Tech",
+    location: "Hyderabad",
+    tags: ["0-2 Years Exp", "4-8 LPA", "Software"],
+    logo: "https://placehold.co/100x100.png",
+    dataAiHint: "tech company logo",
+    applyLink: "https://tinyurl.com/42c457hc",
+  },
+  {
+    title: "Software Development Engineer I",
+    company: "Airtel",
+    location: "Gurugram",
+    tags: ["0-1 Year Exp", "10-15 LPA", "SDE"],
+    logo: "https://placehold.co/100x100.png",
+    dataAiHint: "telecom company logo",
+    applyLink: "https://tinyurl.com/45fjjjpd",
+  },
+  {
+    title: "Graduate Engineer Trainee",
+    company: "HCLTech",
+    location: "PAN India",
+    tags: ["2025 Batch", "Freshers", "₹5 LPA"],
+    logo: "https://placehold.co/100x100.png",
+    dataAiHint: "tech company logo",
+    applyLink: "https://freshershunt.in/hcltech-hiring-graduate-engineer-trainee/",
+  },
+  {
+    title: "Analyst - Data Science",
+    company: "American Express",
+    location: "Bengaluru & Gurgaon",
+    tags: ["Bachelors/Masters", "Freshers", "₹4-7 LPA"],
+    logo: "https://placehold.co/100x100.png",
+    dataAiHint: "financial services logo",
+    applyLink: "https://tinyurl.com/bdd45379",
   },
 ];
 
@@ -118,7 +201,6 @@ export default function JobListingPage() {
             </CardHeader>
             <CardContent className="flex-grow">
               <div className="flex flex-wrap gap-2">
-                <Badge variant="secondary">{job.type}</Badge>
                 {job.tags.map((tag) => (
                   <Badge key={tag} variant="outline">
                     {tag}
@@ -127,7 +209,9 @@ export default function JobListingPage() {
               </div>
             </CardContent>
             <CardFooter>
-              <Button className="w-full">Apply Now</Button>
+                <Button asChild className="w-full">
+                    <Link href={job.applyLink} target="_blank" rel="noopener noreferrer">Apply Now</Link>
+                </Button>
             </CardFooter>
           </Card>
         ))}
@@ -135,3 +219,5 @@ export default function JobListingPage() {
     </div>
   );
 }
+
+    
