@@ -1,7 +1,7 @@
+@import "../components/ui/loader.css";
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-@import "./components/ui/loader.css";
 
 body {
   font-family: "Inter", "Arial", sans-serif;
