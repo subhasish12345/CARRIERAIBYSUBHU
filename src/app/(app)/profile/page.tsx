@@ -55,8 +55,8 @@ type ProfileFormData = z.infer<typeof profileSchema>;
 export default function ProfilePage() {
   const { toast } = useToast();
   const [user, setUser] = useState<User | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [initialDataLoaded, setInitialDataLoaded] = useState(false);
   const router = useRouter();
 
   const form = useForm<ProfileFormData>({
@@ -64,8 +64,6 @@ export default function ProfilePage() {
     defaultValues: getNewUserProfile(),
   });
   
-  const { formState: { isSubmitting } } = form;
-
   const { fields: internshipFields, append: internshipAppend, remove: internshipRemove } = useFieldArray({ control: form.control, name: "internships" });
   const { fields: certificationFields, append: certificationAppend, remove: certificationRemove } = useFieldArray({ control: form.control, name: "certifications" });
   const { fields: courseFields, append: courseAppend, remove: courseRemove } = useFieldArray({ control: form.control, name: "courses" });
@@ -81,35 +79,40 @@ export default function ProfilePage() {
       } else {
         router.push('/login');
       }
-      setLoading(false);
     });
-
     return () => unsubscribeAuth();
   }, [router]);
-
+  
   useEffect(() => {
-    if (user && !initialDataLoaded) {
-      const docRef = doc(db, 'users', user.uid);
-      const unsubscribeSnapshot = onSnapshot(docRef, (docSnap) => {
-        if (docSnap.exists()) {
-          const profileData = docSnap.data() as UserProfile;
-          form.reset({
-            ...getNewUserProfile(),
-            ...profileData,
-            internships: profileData.internships?.map((value) => ({ value })) || [],
-            certifications: profileData.certifications?.map((value) => ({ value })) || [],
-            courses: profileData.courses?.map((value) => ({ value })) || [],
-            languages: profileData.languages?.map((value) => ({ value })) || [],
-            programmingLanguages: profileData.programmingLanguages?.map((value) => ({ value })) || [],
-            projects: profileData.projects?.map((value) => ({ value })) || [],
-            tools: profileData.tools?.map((value) => ({ value })) || [],
-          });
-        }
-        setInitialDataLoaded(true);
-      });
-      return () => unsubscribeSnapshot();
+    let unsubscribeSnapshot: (() => void) | undefined;
+    if (user) {
+        const docRef = doc(db, 'users', user.uid);
+        unsubscribeSnapshot = onSnapshot(docRef, (docSnap) => {
+            if (docSnap.exists()) {
+                const profileData = docSnap.data() as UserProfile;
+                form.reset({
+                    ...getNewUserProfile(),
+                    ...profileData,
+                    internships: profileData.internships?.map((value) => ({ value })) || [],
+                    certifications: profileData.certifications?.map((value) => ({ value })) || [],
+                    courses: profileData.courses?.map((value) => ({ value })) || [],
+                    languages: profileData.languages?.map((value) => ({ value })) || [],
+                    programmingLanguages: profileData.programmingLanguages?.map((value) => ({ value })) || [],
+                    projects: profileData.projects?.map((value) => ({ value })) || [],
+                    tools: profileData.tools?.map((value) => ({ value })) || [],
+                });
+            }
+            setLoading(false);
+        });
+    } else {
+        setLoading(false);
     }
-  }, [user, initialDataLoaded, form]);
+    return () => {
+        if (unsubscribeSnapshot) {
+            unsubscribeSnapshot();
+        }
+    };
+}, [user, form]);
 
 
   const onSubmit = async (data: ProfileFormData) => {
@@ -118,6 +121,7 @@ export default function ProfilePage() {
       return;
     }
 
+    setIsSaving(true);
     try {
       const profileToSave: UserProfile = {
           ...getNewUserProfile(),
@@ -137,6 +141,8 @@ export default function ProfilePage() {
     } catch (error) {
       console.error("Error updating profile:", error);
       toast({ variant: "destructive", title: "Error", description: "Failed to update profile. Please try again." });
+    } finally {
+        setIsSaving(false);
     }
   };
 
@@ -304,8 +310,8 @@ export default function ProfilePage() {
         </Card>
 
         <div className="flex justify-end">
-          <Button type="submit" disabled={isSubmitting}>
-            {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+          <Button type="submit" disabled={isSaving}>
+            {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             Save Changes
           </Button>
         </div>
@@ -313,3 +319,5 @@ export default function ProfilePage() {
     </div>
   );
 }
+
+    
