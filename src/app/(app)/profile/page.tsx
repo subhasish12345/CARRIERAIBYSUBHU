@@ -307,7 +307,7 @@ export default function ProfilePage() {
                 {renderMarksField("10th Marks", "tenthMarks")}
                 {renderMarksField("12th Marks", "twelfthMarks")}
                 {renderMarksField("Diploma Marks", "diplomaMarks")}
-                {renderMarksField("Graduation Marks", "graduationMarks")}
+                {renderMarksfielsd("Graduation Marks", "graduationMarks")}
             </CardContent>
         </Card>
 
@@ -319,7 +319,7 @@ export default function ProfilePage() {
                 {renderArrayFields("Internships", internshipFields, internshipAppend, internshipRemove, "internships")}
                 {renderArrayFields("Certifications", certificationFields, certificationAppend, certificationRemove, "certifications")}
                 {renderArrayFields("Courses", courseFields, courseAppend, courseRemove, "courses")}
-            </a-card-content>
+            </CardContent>
         </Card>
 
         <Card>
