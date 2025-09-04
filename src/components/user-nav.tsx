@@ -4,7 +4,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { onAuthStateChanged, User as FirebaseUser, signOut } from "firebase/auth";
-import { doc, getDoc, setDoc } from "firebase/firestore";
+import { ref, get, set } from "firebase/database";
 import { auth, db } from "@/lib/firebase";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -34,15 +34,15 @@ export function UserNav() {
       setUser(currentUser);
       if (currentUser) {
         const photoURL = currentUser.photoURL;
-        const docRef = doc(db, 'users', currentUser.uid);
+        const userRef = ref(db, 'users/' + currentUser.uid);
         try {
-          const docSnap = await getDoc(docRef);
-          if (docSnap.exists()) {
-            const profile = docSnap.data() as UserProfile;
+          const snapshot = await get(userRef);
+          if (snapshot.exists()) {
+            const profile = snapshot.val() as UserProfile;
             setUserProfile({ ...profile, photoURL });
           } else {
             const newProfile = getNewUserProfile(currentUser);
-            await setDoc(docRef, newProfile);
+            await set(userRef, newProfile);
             setUserProfile(newProfile);
           }
         } catch (error) {

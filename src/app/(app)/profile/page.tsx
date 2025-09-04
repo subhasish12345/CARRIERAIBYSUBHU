@@ -3,7 +3,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from 'next/navigation';
-import { doc, onSnapshot, setDoc } from "firebase/firestore";
+import { ref, onValue, set } from "firebase/database";
 import { useForm, useFieldArray, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -88,10 +88,10 @@ export default function ProfilePage() {
   useEffect(() => {
     if (!user || initialDataLoaded) return;
     
-    const docRef = doc(db, 'users', user.uid);
-    const unsubscribeSnapshot = onSnapshot(docRef, (docSnap) => {
-        if (docSnap.exists()) {
-            const profileData = docSnap.data() as UserProfile;
+    const userRef = ref(db, 'users/' + user.uid);
+    const unsubscribeSnapshot = onValue(userRef, (snapshot) => {
+        const profileData = snapshot.val() as UserProfile;
+        if (profileData) {
             form.reset({
                 ...getNewUserProfile(),
                 ...profileData,
@@ -111,7 +111,7 @@ export default function ProfilePage() {
     });
 
     return () => unsubscribeSnapshot();
-}, [user, initialDataLoaded, form]);
+  }, [user, initialDataLoaded, form]);
 
 
   const onSubmit = async (data: ProfileFormData) => {
@@ -148,8 +148,9 @@ export default function ProfilePage() {
           projects: data.projects?.map(item => item.value).filter(Boolean) || [],
           tools: data.tools?.map(item => item.value).filter(Boolean) || [],
       };
-
-      await setDoc(doc(db, "users", user.uid), profileToSave, { merge: true });
+      
+      const userRef = ref(db, 'users/' + user.uid);
+      await set(userRef, profileToSave);
       toast({ title: "Update successfully", description: "Your profile has been updated successfully." });
     } catch (error) {
       console.error("Error updating profile:", error);

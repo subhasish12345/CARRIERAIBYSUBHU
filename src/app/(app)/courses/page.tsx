@@ -4,7 +4,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState, useMemo } from "react";
-import { collection, onSnapshot, query } from "firebase/firestore";
+import { ref, onValue } from "firebase/database";
 import { db } from "@/lib/firebase";
 import {
   Card,
@@ -25,13 +25,18 @@ export default function CoursesPage() {
   const [searchTerm, setSearchTerm] = useState("");
 
   useEffect(() => {
-    const q = query(collection(db, "courses"));
-    const unsubscribe = onSnapshot(q, (querySnapshot) => {
-      const courseList: Course[] = [];
-      querySnapshot.forEach((doc) => {
-        courseList.push({ id: doc.id, ...(doc.data() as Omit<Course, 'id'>) });
-      });
-      setCourses(courseList);
+    const coursesRef = ref(db, "courses");
+    const unsubscribe = onValue(coursesRef, (snapshot) => {
+      const data = snapshot.val();
+      if (data) {
+        const courseList: Course[] = Object.keys(data).map(key => ({
+          id: key,
+          ...data[key]
+        }));
+        setCourses(courseList);
+      } else {
+        setCourses([]);
+      }
       setLoading(false);
     }, (error) => {
       console.error("Error fetching courses:", error);
@@ -118,5 +123,3 @@ export default function CoursesPage() {
     </div>
   );
 }
-
-    

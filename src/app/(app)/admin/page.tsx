@@ -3,7 +3,7 @@
 
 import { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
-import { addDoc, collection, getDocs, writeBatch, doc } from 'firebase/firestore';
+import { ref, set, push, get, child } from "firebase/database";
 import { db } from '@/lib/firebase';
 import { useAuth } from '@/hooks/use-auth';
 import { useToast } from '@/hooks/use-toast';
@@ -195,7 +195,9 @@ export default function AdminPage() {
 
     startPostingJob(async () => {
       try {
-        await addDoc(collection(db, 'jobs'), parsedJob);
+        const jobsRef = ref(db, 'jobs');
+        const newJobRef = push(jobsRef);
+        await set(newJobRef, parsedJob);
         toast({ title: 'Job Posted!', description: 'The new job listing is now live.' });
         setJobText('');
         setParsedJob(null);
@@ -208,9 +210,10 @@ export default function AdminPage() {
 
   const handleSeed = () => {
     startSeeding(async () => {
-        const jobsCollection = collection(db, 'jobs');
-        const existingJobsSnapshot = await getDocs(jobsCollection);
-        if (!existingJobsSnapshot.empty) {
+        const jobsRef = ref(db, 'jobs');
+        const snapshot = await get(jobsRef);
+
+        if (snapshot.exists()) {
             toast({
                 variant: 'destructive',
                 title: 'Seeding Aborted',
@@ -224,15 +227,15 @@ export default function AdminPage() {
             description: `Adding ${initialJobPostings.length} initial jobs. This may take a moment...`,
         });
 
-        const batch = writeBatch(db);
-        
-        for (const job of initialJobPostings) {
-            const docRef = doc(collection(db, 'jobs')); 
-            batch.set(docRef, job);
-        }
-        
         try {
-            await batch.commit();
+            const updates: { [key: string]: Omit<JobListing, 'id'> } = {};
+            initialJobPostings.forEach(job => {
+                const newJobKey = push(child(ref(db), 'jobs')).key;
+                if(newJobKey) {
+                    updates[`/jobs/${newJobKey}`] = job;
+                }
+            });
+            await set(ref(db), updates);
             toast({
                 title: 'Seeding Complete!',
                 description: `${initialJobPostings.length} jobs added successfully.`,
@@ -260,7 +263,9 @@ export default function AdminPage() {
     }
      startPostingCourse(async () => {
       try {
-        await addDoc(collection(db, 'courses'), course);
+        const coursesRef = ref(db, 'courses');
+        const newCourseRef = push(coursesRef);
+        await set(newCourseRef, course);
         toast({ title: 'Course Posted!', description: 'The new course is now live.' });
         setCourse(initialCourseState);
       } catch (error) {
@@ -449,5 +454,3 @@ export default function AdminPage() {
     </div>
   );
 }
-
-    

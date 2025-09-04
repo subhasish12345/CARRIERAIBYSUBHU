@@ -1,6 +1,6 @@
 
 import { initializeApp, getApp, getApps } from "firebase/app";
-import { initializeFirestore, persistentLocalCache } from "firebase/firestore";
+import { getDatabase } from "firebase/database";
 import { getAuth } from "firebase/auth";
 
 const firebaseConfig = {
@@ -10,13 +10,12 @@ const firebaseConfig = {
     apiKey: "AIzaSyDj6wXqbdgkCk2l3k6YrvoCqxCtzTWbCMg",
     authDomain: "careercompass-ai-qno3f.firebaseapp.com",
     messagingSenderId: "622318145847",
+    databaseURL: "https://careercompass-ai-qno3f-default-rtdb.firebaseio.com"
 };
 
 const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
 
-const db = initializeFirestore(app, {
-  localCache: persistentLocalCache({})
-});
+const db = getDatabase(app);
 
 const auth = getAuth(app);
 
