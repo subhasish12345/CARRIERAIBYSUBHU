@@ -1,3 +1,4 @@
+
 'use server';
 
 /**
@@ -43,13 +44,13 @@ const prompt = ai.definePrompt({
 **Instructions:**
 
 1.  **Analyze the Desired Career Path:** First, understand the target role: {{{career}}}. What are the key skills, keywords, and qualifications for this job?
-2.  **Analyze the User's Profile:** Review the comprehensive user profile data. Pay close attention to their skills, projects, internships, and educational achievements. This profile contains valuable information that may be missing from their current resume.
-    - User Profile: \`\`\`json
-      {{{profile}}}
-      \`\`\`
-3.  **Analyze the Current Resume:** Read the user's uploaded resume to understand its current structure and content.
+2.  **Analyze the Current Resume:** Read the user's uploaded resume to understand its current structure and content. This is your baseline.
     - Current Resume Content: \`\`\`
       {{{resumeText}}}
+      \`\`\`
+3.  **Analyze the User's Profile:** Review the comprehensive user profile data. Pay close attention to their skills, projects, internships, and educational achievements. This profile contains valuable information that may be missing from their current resume.
+    - User Profile: \`\`\`json
+      {{{profile}}}
       \`\`\`
 4.  **Synthesize and Enhance:**
     *   **Integrate Strengths:** Identify key skills, projects, or experiences from the user's profile that are highly relevant to the desired career path but are missing or not well-represented in the original resume. Seamlessly integrate them.
