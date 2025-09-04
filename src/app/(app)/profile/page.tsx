@@ -309,8 +309,7 @@ export default function ProfilePage() {
         </Card>
 
         <div className="flex justify-center py-8">
-          <Button type="submit" disabled={isSaving} size="lg">
-            {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+          <Button type="submit" disabled={form.formState.isSubmitting} size="lg">
             Update
           </Button>
         </div>
