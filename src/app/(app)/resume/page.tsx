@@ -4,7 +4,7 @@
 import { useState, useTransition, useRef, useEffect } from "react";
 import { Loader2, FileUp, Sparkles } from "lucide-react";
 import { onAuthStateChanged, User as FirebaseUser } from "firebase/auth";
-import { ref, get } from "firebase/database";
+import { doc, getDoc } from "firebase/firestore";
 import { auth, db } from "@/lib/firebase";
 import { Button } from "@/components/ui/button";
 import {
@@ -45,10 +45,10 @@ export default function ResumeOptimizerPage() {
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       if (currentUser) {
-        const userRef = ref(db, 'users/' + currentUser.uid);
-        const snapshot = await get(userRef);
-        if (snapshot.exists()) {
-          setUserProfile(snapshot.val() as UserProfile);
+        const userDocRef = doc(db, 'users', currentUser.uid);
+        const docSnap = await getDoc(userDocRef);
+        if (docSnap.exists()) {
+          setUserProfile(docSnap.data() as UserProfile);
         }
       }
       setLoadingProfile(false);
