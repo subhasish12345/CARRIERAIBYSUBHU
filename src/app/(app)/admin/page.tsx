@@ -16,25 +16,117 @@ import { Textarea } from '@/components/ui/textarea';
 import { Loader2, ShieldCheck, Sparkles, FileUp, Database } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import type { JobListing } from '@/types/job-listing';
 
-const initialJobPostings = [
-    `𝗛𝗖𝗟𝗧𝗲𝗰𝗵 𝗠𝗲𝗴𝗮 𝗥𝗲𝗰𝗿𝘂𝗶𝘁𝗺𝗲𝗻𝘁 | 𝗔𝗽𝗽𝗹𝘆 𝗡𝗼𝘄 😍 \n\nRole :- Hiring For Multiple Roles \n\nQualification:- Graduate/Post Graduate \n\nJob Location:- Across India \n\nSalary Range :- 4.5 To 18LPA\n\n𝗔𝗽𝗽𝗹𝘆 𝗡𝗼𝘄👇 :- \n\n https://tinyurl.com/bdd45379`,
-    `TCS National Qualifier Test (NQT) 2025\n\n🎯 3000+ Corporates like TCS, TVS Motor, Jio Platform, Asian Paints and more\n\n🎓 Qualification: B.E/B.Tech/Diploma/Any Degree\n\n🔸 Batch: 2021, 2022, 2023, 2024, 2025, 2026, 2027\n\n🟡 Total Posts: 100K+ Offers (till now)\n\n💰 Highest CTC: Rs. 19 LPA (till now)\n\n📍Job Location: Across India\n\n ⏳ Last Date: 18th September, 2025\n\n 🖊 Test Date: 1st October, 2025\n\n✅ Apply At: https://yt.openinapp.co/0m6rt`,
-    `🚨 𝗚𝗼𝗼𝗴𝗹𝗲 𝗔𝗽𝗽𝗿𝗲𝗻𝘁𝗶𝗰𝗲𝘀𝗵𝗶𝗽 & 𝗜𝗻𝘁𝗲𝗿𝗻𝘀𝗵𝗶𝗽 𝟮𝟬𝟮𝟱 – 𝗔𝗽𝗽𝗹𝘆 𝗡𝗼𝘄! 🚨\n\n𝗦𝗼𝗳𝘁𝘄𝗮𝗿𝗲 𝗔𝗽𝗽𝗹𝗶𝗰𝗮𝘁𝗶𝗼𝗻 𝗗𝗲𝘃𝗲𝗹𝗼𝗽𝗺𝗲𝗻𝘁 𝗔𝗽𝗽𝗿𝗲𝗻𝘁𝗶𝗰𝗲\n• 👨🏻‍💻 Job Role: Software Application Development Apprentice\n• 🎓 Qualification: Bachelor’s Degree / Equivalent Experience\n• 🔹 Batch: Recent Graduates / Freshers\n• 📍 Location: Bengaluru, Hyderabad, Gurugram\n• 🔺 Last Date: Apply ASAP\n🔗 𝗔𝗽𝗽𝗹𝘆 @: https://freshershunt.in/google-software-application-development-apprenticeship/`,
-    `𝗗𝗮𝘁𝗮 𝗔𝗻𝗮𝗹𝘆𝘁𝗶𝗰𝘀 𝗔𝗽𝗽𝗿𝗲𝗻𝘁𝗶𝗰𝗲\n• 👨🏻‍💻 Job Role: Data Analytics Apprentice\n• 🎓 Qualification: Bachelor’s Degree / Equivalent Experience\n• 🔹 Batch: Recent Graduates / Freshers\n• 📍 Location: Bengaluru, Hyderabad, Gurugram\n• 🔺 Last Date: Apply ASAP\n🔗  𝗔𝗽𝗽𝗹𝘆 @: https://freshershunt.in/google-data-analytics-apprenticeship/`,
-    `𝗪𝗲𝗯 𝗦𝗼𝗹𝘂𝘁𝗶𝗼𝗻𝘀 𝗘𝗻𝗴𝗶𝗻𝗲𝗲𝗿 𝗜𝗻𝘁𝗲𝗿𝗻\n• 👨🏻‍💻 Job Role: Web Solutions Engineer Intern\n• 🎓 Qualification: Bachelor’s Degree / Equivalent Experience\n• 🔹 Batch: Recent Graduates / Freshers\n• 📍 Location: Hyderabad\n• 🔺 Last Date: Apply ASAP\n🔗  𝗔𝗽𝗽𝗹𝘆 @: https://freshershunt.in/google-internship-web-solutions-engineer-intern/`,
-    `𝗠𝗽𝗵𝗮𝘀𝗶𝘀 𝗠𝗲𝗴𝗮 𝗥𝗲𝗰𝗿𝘂𝗶𝘁𝗺𝗲𝗻𝘁 – 𝗔𝗽𝗽𝗹𝘆 𝗡𝗼𝘄! 😍 \n\nRole :- Multiple Roles \n\nQualification:- Graduate/Post Graduate\n\nSalary Range:- 4.5 To 22 LPA\n\nJob Location:- Across India\n\n𝗔𝗽𝗽𝗹𝘆 𝗡𝗼𝘄👇 :- \n\nhttps://pdlink.in/4omWEqn`,
-    `Stripe hiring for New Grad Software Engineer\n\nLocation : Bengaluru\n\nQualification: Bachelor’s, Master’s, or PhD degree\n\nExperience:  Freshers\n\nBatch: 2026\n\nSalary: ₹61.3 LPA (Via AmbitionBox)\n\n✅ 𝗔𝗽𝗽𝗹𝘆 𝗟𝗶𝗻𝗸: https://freshershunt.in/stripe-careers-2026-software-engineering-new-grad/`,
-    `🚨 Salesforce is hiring for Software Engineering AMTS 💻\n\n📍 Location: Bangalore & Hyderabad \n\n🎓 Qualification: B.E/ B.Tech graduating in 2026 in Computer Science, Electrical, Electronics, or equivalent fields with specialization in computer science. \n\n👨‍💻 Experience: Fresher\n\n🏫 Batch: 2026\n\n⏰ End Date: September 4, 2025 (7 hours left to apply)\n\n💰 Salary: ₹15 to 36 LPA (Expected)\n\n✅ Apply Link:  https://freshershunt.in/salesforce-off-campus-drive-2025/`,
-    `Stripe hiring for Software Engineer Intern\n\nLocation : Bengaluru\n\nQualification: Bachelor’s, Master’s, or PhD degree\n\nExperience:  Freshers\n\nBatch: Recent Batches\n\n✅ 𝗔𝗽𝗽𝗹𝘆 𝗟𝗶𝗻𝗸: https://freshershunt.in/stripe-internship-software-engineer-intern/`,
-    `🚀 𝗖𝗜𝗦𝗖𝗢 𝗜𝗡𝗧𝗘𝗥𝗡𝗦𝗛𝗜𝗣 𝟮𝟬𝟮𝟱 – 𝗦𝗢𝗙𝗧𝗪𝗔𝗥𝗘 𝗘𝗡𝗚𝗜𝗡𝗘𝗘𝗥 🚀\n\n💼 𝗥𝗼𝗹𝗲: Software Engineer - (Summer Internship) - India Engineering\n\n🎯 𝗘𝗹𝗶𝗴𝗶𝗯𝗶𝗹𝗶𝘁𝘆:\n• 2027 pass out ONLY\n• All degree/branches welcome\n• No active backlog/arrears\n• Bachelor’s or Master’s degree\n\n💰 𝗦𝗮𝗹𝗮𝗿𝘆: ₹41K per month\n📍 𝗟𝗼𝗰𝗮𝘁𝗶𝗼𝗻: Bangalore\n⏰ 𝗔𝗽𝗽𝗹𝘆: ASAP\n\n🔗 𝗔𝗽𝗽𝗹𝘆 𝗛𝗲𝗿𝗲: https://freshershunt.in/cisco-internship-2025/`,
-    `🚀 𝗜𝗦𝗥𝗢 𝗔𝗽𝗽𝗿𝗲𝗻𝘁𝗶𝗰𝗲𝘀 𝟮𝟬𝟮𝟱 𝗛𝗶𝗿𝗶𝗻𝗴 🚀\n\n📍 Location: Hyderabad\n🎓 Qualification: Diploma, BE/B.Tech, Any Graduate degree\n💰 Stipend: ₹ 8000 – Rs. 9000\n🗓 Last Date: 11.09.2025\n\n👉 𝗔𝗽𝗽𝗹𝘆 𝗡𝗼𝘄: https://freshershunt.in/isro-apprentices-2025/`,
-    `HCL Tech – Software Engineer\nLocation: Hyderabad\nSalary: 4 – 8 LPA\nExperience: 0 – 2 Years\nApply: https://tinyurl.com/42c457hc`,
-    `Airtel – Software Development Engineer I\nLocation: Gurugram\nSalary: 10 – 15 LPA\nExperience: 0 – 1 Year\nApply: https://tinyurl.com/45fjjjpd`,
-    `🚨 𝗛𝗖𝗟𝗧𝗲𝗰𝗵 𝗛𝗶𝗿𝗶𝗻𝗴 𝗚𝗿𝗮𝗱𝘂𝗮𝘁𝗲 𝗘𝗻𝗴𝗶𝗻𝗲𝗲𝗿 𝗧𝗿𝗮𝗶𝗻𝗲𝗲!🚨\n\nRole: Graduate Engineer Trainee\n\nQualification: BTech / BE (CSE-IT, EEE / ECE / EIE) Only\n\nExperience: Freshers\n\nBatch: 2025\n\nSalary: ₹5 LPA (Expected)\n\nGreat opportunity for 2025 batch engineering graduates!\n\n✅ 𝗔𝗽𝗽𝗹𝘆 𝗟𝗶𝗻𝗸:  https://freshershunt.in/hcltech-hiring-graduate-engineer-trainee/`,
-    `American Express is hiring Analyst-Data Science\n\nLocation: Bengaluru & Gurgaon\n\nQualification: Bachelors / Masters\n\nBatch: Recent Batches\n\nExperience: Freshers & Experienced\n\nSalary: ₹ 4 to 7 LPA (Expected)\n\n✅ 𝗔𝗽𝗽𝗹𝘆 𝗟𝗶𝗻𝗸:  https://tinyurl.com/bdd45379`,
+
+const initialJobPostings: Omit<JobListing, 'id'>[] = [
+  {
+    title: "Multiple Roles",
+    company: "HCLTech",
+    location: "Across India",
+    tags: ["Graduate", "Post Graduate", "4.5-18 LPA"],
+    applyLink: "https://tinyurl.com/bdd45379",
+  },
+  {
+    title: "National Qualifier Test (NQT) 2025",
+    company: "TCS",
+    location: "Across India",
+    tags: ["2021-2027 Batch", "Any Degree", "Up to 19 LPA"],
+    applyLink: "https://yt.openinapp.co/0m6rt",
+  },
+  {
+    title: "Software Application Development Apprentice",
+    company: "Google",
+    location: "Bengaluru, Hyderabad, Gurugram",
+    tags: ["Apprentice", "Freshers", "Bachelor's Degree"],
+    applyLink: "https://freshershunt.in/google-software-application-development-apprenticeship/",
+  },
+  {
+    title: "Data Analytics Apprentice",
+    company: "Google",
+    location: "Bengaluru, Hyderabad, Gurugram",
+    tags: ["Apprentice", "Data Analytics", "Freshers"],
+    applyLink: "https://freshershunt.in/google-data-analytics-apprenticeship/",
+  },
+  {
+    title: "Web Solutions Engineer Intern",
+    company: "Google",
+    location: "Hyderabad",
+    tags: ["Internship", "Web Solutions", "Freshers"],
+    applyLink: "https://freshershunt.in/google-internship-web-solutions-engineer-intern/",
+  },
+  {
+    title: "Multiple Roles",
+    company: "Mphasis",
+    location: "Across India",
+    tags: ["Graduate", "Post Graduate", "4.5-22 LPA"],
+    applyLink: "https://pdlink.in/4omWEqn",
+  },
+  {
+    title: "New Grad Software Engineer",
+    company: "Stripe",
+    location: "Bengaluru",
+    tags: ["2026 Batch", "New Grad", "₹61.3 LPA"],
+    applyLink: "https://freshershunt.in/stripe-careers-2026-software-engineering-new-grad/",
+  },
+  {
+    title: "Software Engineering AMTS",
+    company: "Salesforce",
+    location: "Bangalore & Hyderabad",
+    tags: ["2026 Batch", "Freshers", "₹15-36 LPA"],
+    applyLink: "https://freshershunt.in/salesforce-off-campus-drive-2025/",
+  },
+  {
+    title: "Software Engineer Intern",
+    company: "Stripe",
+    location: "Bengaluru",
+    tags: ["Internship", "Recent Batches", "Freshers"],
+    applyLink: "https://freshershunt.in/stripe-internship-software-engineer-intern/",
+  },
+  {
+    title: "Software Engineer - Summer Internship",
+    company: "CISCO",
+    location: "Bangalore",
+    tags: ["2027 Pass out", "Internship", "₹41K/month"],
+    applyLink: "https://freshershunt.in/cisco-internship-2025/",
+  },
+  {
+    title: "Apprenticeship 2025",
+    company: "ISRO",
+    location: "Hyderabad",
+    tags: ["Diploma", "BE/B.Tech", "Any Graduate"],
+    applyLink: "https://freshershunt.in/isro-apprentices-2025/",
+  },
+  {
+    title: "Software Engineer",
+    company: "HCL Tech",
+    location: "Hyderabad",
+    tags: ["0-2 Years Exp", "4-8 LPA", "Software"],
+    applyLink: "https://tinyurl.com/42c457hc",
+  },
+  {
+    title: "Software Development Engineer I",
+    company: "Airtel",
+    location: "Gurugram",
+    tags: ["0-1 Year Exp", "10-15 LPA", "SDE"],
+    applyLink: "https://tinyurl.com/45fjjjpd",
+  },
+  {
+    title: "Graduate Engineer Trainee",
+    company: "HCLTech",
+    location: "PAN India",
+    tags: ["2025 Batch", "Freshers", "₹5 LPA"],
+    applyLink: "https://freshershunt.in/hcltech-hiring-graduate-engineer-trainee/",
+  },
+  {
+    title: "Analyst - Data Science",
+    company: "American Express",
+    location: "Bengaluru & Gurgaon",
+    tags: ["Bachelors/Masters", "Freshers", "₹4-7 LPA"],
+    applyLink: "https://tinyurl.com/bdd45379",
+  },
 ];
+
 
 export default function AdminPage() {
   const { user, loading: authLoading } = useAuth();
@@ -117,30 +209,21 @@ export default function AdminPage() {
 
         toast({
             title: 'Seeding Started',
-            description: `Parsing and adding ${initialJobPostings.length} initial jobs. This may take a moment...`,
+            description: `Adding ${initialJobPostings.length} initial jobs. This may take a moment...`,
         });
 
         const batch = writeBatch(db);
-        let successCount = 0;
-        let failCount = 0;
-
-        for (const jobText of initialJobPostings) {
-            try {
-                const parsedJob = await parseJobDescription({ jobText });
-                const docRef = doc(collection(db, 'jobs')); 
-                batch.set(docRef, parsedJob);
-                successCount++;
-            } catch (error) {
-                console.error('Failed to parse one of the initial jobs:', jobText, error);
-                failCount++;
-            }
+        
+        for (const job of initialJobPostings) {
+            const docRef = doc(collection(db, 'jobs')); 
+            batch.set(docRef, job);
         }
         
         try {
             await batch.commit();
             toast({
                 title: 'Seeding Complete!',
-                description: `${successCount} jobs added successfully. ${failCount} jobs failed to parse.`,
+                description: `${initialJobPostings.length} jobs added successfully.`,
             });
         } catch (error) {
             console.error('Error committing job seed batch:', error);
@@ -187,7 +270,7 @@ export default function AdminPage() {
           <CardHeader>
             <CardTitle>1. Paste Job Description</CardTitle>
             <CardDescription>
-              Copy and paste the entire job posting text into the box below.
+              Copy and paste the entire job posting text into the box below to add a new job.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -278,5 +361,3 @@ export default function AdminPage() {
     </div>
   );
 }
-
-    
