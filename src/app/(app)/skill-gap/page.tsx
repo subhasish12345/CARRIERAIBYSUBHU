@@ -1,10 +1,15 @@
+
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState, useTransition, useEffect } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { Loader2, GraduationCap, Sparkles } from "lucide-react";
+import { onAuthStateChanged, User as FirebaseUser } from "firebase/auth";
+import { doc, getDoc } from "firebase/firestore";
+import { auth, db } from "@/lib/firebase";
+import type { UserProfile } from "@/types/user-profile";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -38,6 +43,8 @@ const formSchema = z.object({
 export default function SkillGapAnalysisPage() {
   const [isPending, startTransition] = useTransition();
   const [result, setResult] = useState<SkillGapAnalysisOutput | null>(null);
+  const [user, setUser] = useState<FirebaseUser | null>(null);
+  const [loadingProfile, setLoadingProfile] = useState(true);
   const { toast } = useToast();
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -47,6 +54,30 @@ export default function SkillGapAnalysisPage() {
       desiredCareerPath: "",
     },
   });
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+      setUser(currentUser);
+      if (currentUser) {
+        const docRef = doc(db, 'users', currentUser.uid);
+        const docSnap = await getDoc(docRef);
+        if (docSnap.exists()) {
+          const userProfile = docSnap.data() as UserProfile;
+          const skills = [
+            ...(userProfile.programmingLanguages || []),
+            ...(userProfile.tools || []),
+            ...(userProfile.languages || []),
+            ...(userProfile.courses || []),
+            ...(userProfile.certifications || []),
+          ].filter(Boolean);
+          form.setValue('userSkills', skills.join(', '));
+        }
+      }
+      setLoadingProfile(false);
+    });
+    return () => unsubscribe();
+  }, [form]);
+
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setResult(null);
@@ -71,7 +102,7 @@ export default function SkillGapAnalysisPage() {
         <CardHeader>
           <CardTitle>Skill Gap Analysis</CardTitle>
           <CardDescription>
-            Find out what skills you need to land your dream job.
+            Your current skills are pre-filled from your profile. Enter your desired career to find out what skills you need to land your dream job.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -103,11 +134,16 @@ export default function SkillGapAnalysisPage() {
                   </FormItem>
                 )}
               />
-              <Button type="submit" disabled={isPending}>
+              <Button type="submit" disabled={isPending || loadingProfile}>
                 {isPending ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                     Analyzing...
+                  </>
+                ) : loadingProfile ? (
+                   <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Loading Profile...
                   </>
                 ) : (
                   <>
@@ -121,14 +157,16 @@ export default function SkillGapAnalysisPage() {
         </CardContent>
       </Card>
       <div className="flex items-center justify-center">
-        {isPending && (
+        {(isPending || loadingProfile) && (
             <div className="flex flex-col items-center gap-4 text-center">
                 <Loader2 className="h-12 w-12 animate-spin text-primary" />
-                <h3 className="font-semibold">Finding skill gaps...</h3>
-                <p className="text-sm text-muted-foreground">Our AI is comparing your skills to your career goal.</p>
+                <h3 className="font-semibold">{loadingProfile ? "Loading your profile..." : "Finding skill gaps..."}</h3>
+                <p className="text-sm text-muted-foreground">
+                  {loadingProfile ? "Please wait while we fetch your skills." : "Our AI is comparing your skills to your career goal."}
+                </p>
             </div>
         )}
-        {result && (
+        {result && !isPending && (
           <Card className="w-full">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -139,7 +177,7 @@ export default function SkillGapAnalysisPage() {
             <CardContent className="space-y-4">
               <div>
                 <h3 className="font-semibold">Identified Skill Gaps</h3>
-                <p className="text-sm whitespace-pre-wrap">{result.skillGaps}</p>
+                <p className="text-sm text-muted-foreground whitespace-pre-wrap">{result.skillGaps}</p>
               </div>
               <div>
                 <h3 className="font-semibold">Recommended Learning Resources</h3>
