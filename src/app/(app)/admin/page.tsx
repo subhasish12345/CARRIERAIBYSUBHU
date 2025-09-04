@@ -226,14 +226,13 @@ export default function AdminPage() {
         });
 
         try {
-            const updates: { [key: string]: Omit<JobListing, 'id'> } = {};
+            const batch = writeBatch(db);
             initialJobPostings.forEach(job => {
-                const newJobKey = push(child(ref(db), 'jobs')).key;
-                if(newJobKey) {
-                    updates[`/jobs/${newJobKey}`] = job;
-                }
+                const newJobRef = doc(jobsCollection);
+                batch.set(newJobRef, job);
             });
-            await set(ref(db), updates);
+            await batch.commit();
+            
             toast({
                 title: 'Seeding Complete!',
                 description: `${initialJobPostings.length} jobs added successfully.`,
@@ -261,9 +260,7 @@ export default function AdminPage() {
     }
      startPostingCourse(async () => {
       try {
-        const coursesRef = ref(db, 'courses');
-        const newCourseRef = push(coursesRef);
-        await set(newCourseRef, course);
+        await addDoc(collection(db, 'courses'), course);
         toast({ title: 'Course Posted!', description: 'The new course is now live.' });
         setCourse(initialCourseState);
       } catch (error) {
@@ -452,3 +449,5 @@ export default function AdminPage() {
     </div>
   );
 }
+
+    
