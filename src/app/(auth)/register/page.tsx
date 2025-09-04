@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { createUserWithEmailAndPassword, sendEmailVerification, updateProfile } from "firebase/auth";
-import { ref, set } from "firebase/database";
+import { setDoc, doc } from "firebase/firestore"; 
 import { auth, db } from "@/lib/firebase";
 import { Button } from "@/components/ui/button";
 import {
@@ -59,8 +59,7 @@ export default function RegisterPage() {
 
       const newUserProfile = getNewUserProfile(user);
       
-      const userRef = ref(db, 'users/' + user.uid);
-      await set(userRef, newUserProfile);
+      await setDoc(doc(db, "users", user.uid), newUserProfile);
 
       await sendEmailVerification(user);
 

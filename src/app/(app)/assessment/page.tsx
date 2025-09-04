@@ -4,7 +4,7 @@
 import { useState, useTransition } from "react";
 import { Loader2, Sparkles } from "lucide-react";
 import { onAuthStateChanged, User as FirebaseUser } from "firebase/auth";
-import { ref, get } from "firebase/database";
+import { doc, getDoc } from "firebase/firestore";
 import { auth, db } from "@/lib/firebase";
 
 import { Button } from "@/components/ui/button";
@@ -42,11 +42,11 @@ export default function CareerAssessmentPage() {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       setUser(currentUser);
       if (currentUser) {
-        const userRef = ref(db, 'users/' + currentUser.uid);
-        const snapshot = await get(userRef);
-        if (snapshot.exists()) {
-          setUserProfile(snapshot.val() as UserProfile);
-        }
+        const docRef = doc(db, 'users', currentUser.uid);
+        const docSnap = await getDoc(docRef);
+        if (docSnap.exists()) {
+          setUserProfile(docSnap.data() as UserProfile);
+}
       }
       setLoadingProfile(false);
     });

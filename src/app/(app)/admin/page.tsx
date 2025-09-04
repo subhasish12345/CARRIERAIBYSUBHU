@@ -3,7 +3,7 @@
 
 import { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
-import { ref, set, push, get, child } from "firebase/database";
+import { addDoc, collection, getDocs, writeBatch, doc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { useAuth } from '@/hooks/use-auth';
 import { useToast } from '@/hooks/use-toast';
@@ -195,9 +195,7 @@ export default function AdminPage() {
 
     startPostingJob(async () => {
       try {
-        const jobsRef = ref(db, 'jobs');
-        const newJobRef = push(jobsRef);
-        await set(newJobRef, parsedJob);
+        await addDoc(collection(db, 'jobs'), parsedJob);
         toast({ title: 'Job Posted!', description: 'The new job listing is now live.' });
         setJobText('');
         setParsedJob(null);
@@ -210,10 +208,10 @@ export default function AdminPage() {
 
   const handleSeed = () => {
     startSeeding(async () => {
-        const jobsRef = ref(db, 'jobs');
-        const snapshot = await get(jobsRef);
+      const jobsCollection = collection(db, 'jobs');
+      const existingJobsSnapshot = await getDocs(jobsCollection);
+      if (!existingJobsSnapshot.empty) {
 
-        if (snapshot.exists()) {
             toast({
                 variant: 'destructive',
                 title: 'Seeding Aborted',

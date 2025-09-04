@@ -7,7 +7,7 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { Loader2, GraduationCap, Sparkles } from "lucide-react";
 import { onAuthStateChanged, User as FirebaseUser } from "firebase/auth";
-import { ref, get } from "firebase/database";
+import { doc, getDoc } from "firebase/firestore";
 import { auth, db } from "@/lib/firebase";
 import type { UserProfile } from "@/types/user-profile";
 
@@ -59,10 +59,10 @@ export default function SkillGapAnalysisPage() {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       setUser(currentUser);
       if (currentUser) {
-        const userRef = ref(db, 'users/' + currentUser.uid);
-        const snapshot = await get(userRef);
-        if (snapshot.exists()) {
-          const userProfile = snapshot.val() as UserProfile;
+        const docRef = doc(db, 'users', currentUser.uid);
+        const docSnap = await getDoc(docRef);
+        if (docSnap.exists()) {
+          const userProfile = docSnap.data() as UserProfile;
           const skills = [
             ...(userProfile.programmingLanguages || []),
             ...(userProfile.tools || []),

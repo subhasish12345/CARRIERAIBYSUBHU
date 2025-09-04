@@ -4,7 +4,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { ref, onValue } from "firebase/database";
+import { collection, onSnapshot, query } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import {
   Card,
@@ -17,7 +17,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { MapPin, Search, Loader2 } from "lucide-react";
+import { MapPin, Search, Loader2, Building2 } from "lucide-react";
 import type { JobListing } from "@/types/job-listing";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
@@ -32,18 +32,14 @@ export default function JobListingPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const jobsRef = ref(db, "jobs");
-    const unsubscribe = onValue(jobsRef, (snapshot) => {
-      const data = snapshot.val();
-      if (data) {
-        const jobs: JobListing[] = Object.keys(data).map(key => ({
-            id: key,
-            ...data[key]
-        }));
-        setJobListings(jobs);
-      } else {
-        setJobListings([]);
-      }
+    const q = query(collection(db, "jobs"));
+    const unsubscribe = onSnapshot(q, (querySnapshot) => {
+      const jobs: JobListing[] = [];
+      querySnapshot.forEach((doc) => {
+        jobs.push({ id: doc.id, ...(doc.data() as Omit<JobListing, 'id'>) });
+      });
+      setJobListings(jobs);
+
       setLoading(false);
     }, (error) => {
       console.error("Error fetching jobs:", error);
