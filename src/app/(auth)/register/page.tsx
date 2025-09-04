@@ -19,6 +19,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { getNewUserProfile } from "@/lib/user-profile";
 
 export default function RegisterPage() {
   const [firstName, setFirstName] = useState('');
@@ -53,18 +54,13 @@ export default function RegisterPage() {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
 
-      // Update user profile
       const fullName = `${firstName} ${lastName}`.trim();
       await updateProfile(user, { displayName: fullName });
 
-      // Create user document in Firestore
-      await setDoc(doc(db, "users", user.uid), {
-        id: user.uid,
-        email: user.email,
-        fullName: fullName,
-      });
+      const newUserProfile = getNewUserProfile(user);
+      
+      await setDoc(doc(db, "users", user.uid), newUserProfile);
 
-      // Send verification email
       await sendEmailVerification(user);
 
       toast({
@@ -72,7 +68,6 @@ export default function RegisterPage() {
         description: "A verification email has been sent. Please check your inbox (and spam folder) to activate your account.",
       });
 
-      // Sign out the user until they verify their email
       await auth.signOut();
 
       router.push('/login');
