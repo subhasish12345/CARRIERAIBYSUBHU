@@ -10,6 +10,7 @@ import {
   GraduationCap,
   LayoutDashboard,
   ScanSearch,
+  ShieldCheck,
 } from "lucide-react";
 import { AppLogo } from "@/components/app-logo";
 import { UserNav } from "@/components/user-nav";
@@ -23,6 +24,7 @@ import {
   SidebarProvider,
   SidebarTrigger,
 } from "@/components/ui/sidebar";
+import { useAuth } from "@/hooks/use-auth";
 
 const navItems = [
   { href: "/dashboard", icon: LayoutDashboard, label: "Dashboard" },
@@ -32,8 +34,13 @@ const navItems = [
   { href: "/jobs", icon: Briefcase, label: "Job Listings" },
 ];
 
+const adminNavItem = { href: "/admin", icon: ShieldCheck, label: "Admin" };
+
 function AppSidebar() {
   const pathname = usePathname();
+  const { user } = useAuth();
+  const isAdmin = user?.email === 'sadmisn@gmail.com';
+
   return (
     <Sidebar>
       <SidebarHeader>
@@ -55,6 +62,20 @@ function AppSidebar() {
               </SidebarMenuButton>
             </SidebarMenuItem>
           ))}
+           {isAdmin && (
+            <SidebarMenuItem>
+              <SidebarMenuButton
+                asChild
+                isActive={pathname.startsWith(adminNavItem.href)}
+                tooltip={adminNavItem.label}
+              >
+                <Link href={adminNavItem.href}>
+                  <adminNavItem.icon />
+                  <span>{adminNavItem.label}</span>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          )}
         </SidebarMenu>
       </SidebarContent>
     </Sidebar>
