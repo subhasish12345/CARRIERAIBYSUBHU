@@ -28,6 +28,7 @@ import {
 } from "@/components/ui/sidebar";
 import { useAuth } from "@/hooks/use-auth";
 import { DarkModeToggle } from "@/components/dark-mode-toggle";
+import { Footer } from "@/components/footer";
 
 const navItems = [
   { href: "/dashboard", icon: LayoutDashboard, label: "Dashboard" },
@@ -125,6 +126,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       <div className="flex flex-1 flex-col">
         <AppHeader />
         <main className="flex-1 p-4 sm:p-6 lg:p-8">{children}</main>
+        <Footer />
       </div>
     </SidebarProvider>
   );
