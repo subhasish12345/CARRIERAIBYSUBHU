@@ -22,6 +22,7 @@ import {
   type OptimizeResumeOutput,
 } from "@/ai/flows/resume-optimization";
 import type { UserProfile } from "@/types/user-profile";
+import { GhostLoader } from "@/components/ui/loader";
 
 const toBase64 = (file: File): Promise<string> =>
   new Promise((resolve, reject) => {
@@ -180,7 +181,7 @@ export default function ResumeOptimizerPage() {
       <div className="flex items-center justify-center">
         {isPending && (
             <div className="flex flex-col items-center gap-4 text-center">
-                <Loader2 className="h-12 w-12 animate-spin text-primary" />
+                <GhostLoader />
                 <h3 className="font-semibold">Optimizing your resume...</h3>
                 <p className="text-sm text-muted-foreground">Our AI is polishing your resume to perfection.</p>
             </div>

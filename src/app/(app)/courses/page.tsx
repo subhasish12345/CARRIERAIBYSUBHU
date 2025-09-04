@@ -16,9 +16,10 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Search, Loader2 } from "lucide-react";
+import { Search } from "lucide-react";
 import type { Course } from "@/types/course";
 import { useAuth } from "@/hooks/use-auth";
+import { GhostLoader } from "@/components/ui/loader";
 
 export default function CoursesPage() {
   const [courses, setCourses] = useState<Course[]>([]);
@@ -82,7 +83,7 @@ export default function CoursesPage() {
 
       {loading ? (
         <div className="flex items-center justify-center py-16">
-          <Loader2 className="h-12 w-12 animate-spin text-primary" />
+          <GhostLoader />
         </div>
       ) : filteredCourses.length === 0 ? (
         <Card>

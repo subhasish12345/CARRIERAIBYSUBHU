@@ -29,6 +29,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
+import { GhostLoader } from "@/components/ui/loader";
 
 
 export default function LoginPage() {
@@ -236,7 +237,7 @@ export default function LoginPage() {
         </>
         ) : (
           <div className="flex items-center justify-center h-64">
-            <Loader2 className="h-8 w-8 animate-spin" />
+            <GhostLoader />
           </div>
         )}
         <div className="mt-4 text-center text-sm">

@@ -34,6 +34,7 @@ import {
   type SkillGapAnalysisOutput,
 } from "@/ai/flows/skill-gap-analysis";
 import { useToast } from "@/hooks/use-toast";
+import { GhostLoader } from "@/components/ui/loader";
 
 const formSchema = z.object({
   userSkills: z.string().min(1, "Please enter your current skills."),
@@ -159,7 +160,7 @@ export default function SkillGapAnalysisPage() {
       <div className="flex items-center justify-center">
         {(isPending || loadingProfile) && (
             <div className="flex flex-col items-center gap-4 text-center">
-                <Loader2 className="h-12 w-12 animate-spin text-primary" />
+                <GhostLoader />
                 <h3 className="font-semibold">{loadingProfile ? "Loading your profile..." : "Finding skill gaps..."}</h3>
                 <p className="text-sm text-muted-foreground">
                   {loadingProfile ? "Please wait while we fetch your skills." : "Our AI is comparing your skills to your career goal."}

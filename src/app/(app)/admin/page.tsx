@@ -32,6 +32,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import type { JobListing } from '@/types/job-listing';
 import type { Course } from '@/types/course';
 import Image from 'next/image';
+import { GhostLoader } from '@/components/ui/loader';
 
 
 const initialJobPostings: Omit<JobListing, 'id'>[] = [
@@ -225,9 +226,9 @@ export default function AdminPage() {
 
   if (authLoading || !isAuthorized) {
     return (
-      <div className="flex items-center justify-center h-full">
-        <Loader2 className="h-12 w-12 animate-spin text-primary" />
-        <p className="ml-4">Verifying access...</p>
+      <div className="flex flex-col items-center justify-center h-full">
+        <GhostLoader />
+        <p className="ml-4 mt-4">Verifying access...</p>
       </div>
     );
   }
@@ -423,7 +424,7 @@ export default function AdminPage() {
                   <Label>2. Review & Post Job</Label>
                    {isParsing && (
                     <div className="flex flex-col items-center justify-center min-h-[250px] space-y-4 rounded-md border border-dashed">
-                      <Loader2 className="h-10 w-10 animate-spin text-primary" />
+                      <GhostLoader />
                       <p className="text-muted-foreground">AI is extracting details...</p>
                     </div>
                   )}
@@ -483,7 +484,7 @@ export default function AdminPage() {
                 <CardContent>
                     {loadingJobs ? (
                          <div className="flex items-center justify-center py-8">
-                            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                            <GhostLoader />
                          </div>
                     ) : jobs.length === 0 ? (
                         <p className="text-muted-foreground text-center py-8">No jobs found.</p>
@@ -589,7 +590,7 @@ export default function AdminPage() {
                 <CardContent>
                      {loadingCourses ? (
                          <div className="flex items-center justify-center py-8">
-                            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                            <GhostLoader />
                          </div>
                     ) : courses.length === 0 ? (
                         <p className="text-muted-foreground text-center py-8">No courses found.</p>

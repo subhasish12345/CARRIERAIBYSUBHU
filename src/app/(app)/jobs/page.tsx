@@ -17,10 +17,11 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { MapPin, Search, Loader2, Building2 } from "lucide-react";
+import { MapPin, Search, Building2 } from "lucide-react";
 import type { JobListing } from "@/types/job-listing";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuth } from "@/hooks/use-auth";
+import { GhostLoader } from "@/components/ui/loader";
 
 const getCompanyInitials = (name: string) => {
   if (!name) return "";
@@ -81,7 +82,7 @@ export default function JobListingPage() {
 
       {loading ? (
         <div className="flex items-center justify-center py-16">
-          <Loader2 className="h-12 w-12 animate-spin text-primary" />
+          <GhostLoader />
         </div>
       ) : jobListings.length === 0 ? (
         <Card>

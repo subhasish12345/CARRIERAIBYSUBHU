@@ -20,6 +20,7 @@ import { Label } from "@/components/ui/label";
 import { Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { getNewUserProfile } from "@/lib/user-profile";
+import { GhostLoader } from "@/components/ui/loader";
 
 export default function RegisterPage() {
   const [firstName, setFirstName] = useState('');
@@ -161,7 +162,7 @@ export default function RegisterPage() {
         </form>
         ) : (
           <div className="flex items-center justify-center h-80">
-            <Loader2 className="h-8 w-8 animate-spin" />
+            <GhostLoader />
           </div>
         )}
         <div className="mt-4 text-center text-sm">

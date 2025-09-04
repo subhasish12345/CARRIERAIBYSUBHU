@@ -24,6 +24,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Loader2, PlusCircle, Trash2 } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { getNewUserProfile } from "@/lib/user-profile";
+import { GhostLoader } from "@/components/ui/loader";
 
 const profileSchema = z.object({
   fullName: z.string().optional(),
@@ -228,7 +229,7 @@ export default function ProfilePage() {
   if (loading) {
       return (
           <div className="flex items-center justify-center h-full">
-              <Loader2 className="h-12 w-12 animate-spin text-primary" />
+              <GhostLoader />
           </div>
       );
   }

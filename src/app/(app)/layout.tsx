@@ -12,7 +12,6 @@ import {
   ScanSearch,
   ShieldCheck,
   BookOpen,
-  Loader2,
 } from "lucide-react";
 import { AppLogo } from "@/components/app-logo";
 import { UserNav } from "@/components/user-nav";
@@ -29,6 +28,7 @@ import {
 import { useAuth } from "@/hooks/use-auth";
 import { DarkModeToggle } from "@/components/dark-mode-toggle";
 import { Footer } from "@/components/footer";
+import { GhostLoader } from "@/components/ui/loader";
 
 const navItems = [
   { href: "/dashboard", icon: LayoutDashboard, label: "Dashboard" },
@@ -111,7 +111,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   if (loading) {
     return (
       <div className="flex h-screen w-screen items-center justify-center">
-        <Loader2 className="h-12 w-12 animate-spin text-primary" />
+        <GhostLoader />
       </div>
     );
   }

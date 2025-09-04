@@ -29,6 +29,7 @@ import { useToast } from "@/hooks/use-toast";
 import type { UserProfile } from "@/types/user-profile";
 import { useEffect } from "react";
 import Link from "next/link";
+import { GhostLoader } from "@/components/ui/loader";
 
 export default function CareerAssessmentPage() {
   const [isPending, startTransition] = useTransition();
@@ -113,7 +114,7 @@ export default function CareerAssessmentPage() {
       <div className="flex items-start justify-center">
         {(isPending || loadingProfile) && (
             <div className="flex flex-col items-center gap-4 text-center mt-12">
-                <Loader2 className="h-12 w-12 animate-spin text-primary" />
+                <GhostLoader />
                 <h3 className="font-semibold">{loadingProfile ? "Loading your profile..." : "Analyzing your profile..."}</h3>
                 <p className="text-sm text-muted-foreground">
                   {loadingProfile ? "Please wait while we fetch your data." : "Our AI strategist is crafting your personalized career roadmap."}
