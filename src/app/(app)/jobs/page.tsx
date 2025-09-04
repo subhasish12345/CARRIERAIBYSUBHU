@@ -20,6 +20,7 @@ import { Input } from "@/components/ui/input";
 import { MapPin, Search, Loader2, Building2 } from "lucide-react";
 import type { JobListing } from "@/types/job-listing";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { useAuth } from "@/hooks/use-auth";
 
 const getCompanyInitials = (name: string) => {
   if (!name) return "";
@@ -30,8 +31,12 @@ const getCompanyInitials = (name: string) => {
 export default function JobListingPage() {
   const [jobListings, setJobListings] = useState<JobListing[]>([]);
   const [loading, setLoading] = useState(true);
+  const { loading: authLoading } = useAuth();
+
 
   useEffect(() => {
+    if (authLoading) return; 
+    
     const q = query(collection(db, "jobs"));
     const unsubscribe = onSnapshot(q, (querySnapshot) => {
       const jobs: JobListing[] = [];
@@ -47,7 +52,7 @@ export default function JobListingPage() {
     });
 
     return () => unsubscribe();
-  }, []);
+  }, [authLoading]);
 
   return (
     <div className="space-y-8 animate-fade-in-up">

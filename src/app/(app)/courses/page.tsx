@@ -18,13 +18,18 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Search, Loader2 } from "lucide-react";
 import type { Course } from "@/types/course";
+import { useAuth } from "@/hooks/use-auth";
 
 export default function CoursesPage() {
   const [courses, setCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
+  const { loading: authLoading } = useAuth();
+
 
   useEffect(() => {
+    if (authLoading) return;
+
     const q = query(collection(db, "courses"));
     const unsubscribe = onSnapshot(q, (querySnapshot) => {
       const courseList: Course[] = [];
@@ -40,7 +45,7 @@ export default function CoursesPage() {
     });
 
     return () => unsubscribe();
-  }, []);
+  }, [authLoading]);
 
   const filteredCourses = useMemo(() => {
     if (!searchTerm) return courses;
