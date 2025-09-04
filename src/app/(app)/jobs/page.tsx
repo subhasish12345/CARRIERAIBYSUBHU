@@ -17,8 +17,15 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { MapPin, Search, Loader2 } from "lucide-react";
+import { MapPin, Search, Loader2, Building2 } from "lucide-react";
 import type { JobListing } from "@/types/job-listing";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+
+const getCompanyInitials = (name: string) => {
+  if (!name) return "";
+  const initials = name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+  return initials;
+}
 
 export default function JobListingPage() {
   const [jobListings, setJobListings] = useState<JobListing[]>([]);
@@ -81,15 +88,17 @@ export default function JobListingPage() {
           {jobListings.map((job) => (
             <Card key={job.id} className="flex flex-col">
               <CardHeader className="flex-row items-start gap-4">
-                <Image
-                  src={`https://logo.clearbit.com/${job.company.toLowerCase().replace(/ /g, '')}.com?size=56`}
-                  alt={`${job.company} logo`}
-                  width={56}
-                  height={56}
-                  className="rounded-lg border"
-                  onError={(e) => { e.currentTarget.src = 'https://placehold.co/100x100.png'; }}
-                  data-ai-hint="company logo"
-                />
+                <Avatar className="h-14 w-14 rounded-lg border">
+                    <AvatarImage
+                      src={`https://logo.clearbit.com/${job.company.toLowerCase().replace(/\s/g, '')}.com?size=56`}
+                      alt={`${job.company} logo`}
+                      className="object-contain"
+                      data-ai-hint="company logo"
+                    />
+                    <AvatarFallback className="rounded-lg">
+                      <span className="text-xs font-bold">{getCompanyInitials(job.company)}</span>
+                    </AvatarFallback>
+                </Avatar>
                 <div className="flex-grow">
                   <CardTitle>{job.title}</CardTitle>
                   <CardDescription>{job.company}</CardDescription>
