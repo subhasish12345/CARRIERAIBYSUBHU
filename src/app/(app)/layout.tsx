@@ -11,6 +11,7 @@ import {
   LayoutDashboard,
   ScanSearch,
   ShieldCheck,
+  BookOpen,
 } from "lucide-react";
 import { AppLogo } from "@/components/app-logo";
 import { UserNav } from "@/components/user-nav";
@@ -33,6 +34,7 @@ const navItems = [
   { href: "/skill-gap", icon: GraduationCap, label: "Skill Gap Analysis" },
   { href: "/resume", icon: FileText, label: "Resume Optimizer" },
   { href: "/jobs", icon: Briefcase, label: "Job Listings" },
+  { href: "/courses", icon: BookOpen, label: "Courses" },
 ];
 
 const adminNavItem = { href: "/admin", icon: ShieldCheck, label: "Admin" };
@@ -105,3 +107,5 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     </SidebarProvider>
   );
 }
+
+    
