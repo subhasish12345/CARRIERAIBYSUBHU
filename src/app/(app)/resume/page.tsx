@@ -1,7 +1,10 @@
 "use client";
 
-import { useState, useTransition, useRef } from "react";
+import { useState, useTransition, useRef, useEffect } from "react";
 import { Loader2, FileUp, Sparkles } from "lucide-react";
+import { onAuthStateChanged, User as FirebaseUser } from "firebase/auth";
+import { doc, getDoc } from "firebase/firestore";
+import { auth, db } from "@/lib/firebase";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -11,11 +14,13 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import {
   optimizeResume,
   type OptimizeResumeOutput,
 } from "@/ai/flows/resume-optimization";
+import type { UserProfile } from "@/types/user-profile";
 
 const toBase64 = (file: File): Promise<string> =>
   new Promise((resolve, reject) => {
@@ -30,8 +35,25 @@ export default function ResumeOptimizerPage() {
   const [result, setResult] = useState<OptimizeResumeOutput | null>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [fileName, setFileName] = useState<string>("");
+  const [desiredCareerPath, setDesiredCareerPath] = useState("");
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
+  const [loadingProfile, setLoadingProfile] = useState(true);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+      if (currentUser) {
+        const docRef = doc(db, 'users', currentUser.uid);
+        const docSnap = await getDoc(docRef);
+        if (docSnap.exists()) {
+          setUserProfile(docSnap.data() as UserProfile);
+        }
+      }
+      setLoadingProfile(false);
+    });
+    return () => unsubscribe();
+  }, []);
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -51,12 +73,28 @@ export default function ResumeOptimizerPage() {
       });
       return;
     }
+    if (!desiredCareerPath) {
+      toast({
+        variant: "destructive",
+        title: "No career path",
+        description: "Please enter your desired career path.",
+      });
+      return;
+    }
+    if (!userProfile) {
+       toast({
+        variant: "destructive",
+        title: "Profile not loaded",
+        description: "Your user profile could not be loaded. Please try again.",
+      });
+      return;
+    }
 
     setResult(null);
     startTransition(async () => {
       try {
         const resumeDataUri = await toBase64(selectedFile);
-        const optimizationResult = await optimizeResume({ resumeDataUri });
+        const optimizationResult = await optimizeResume({ resumeDataUri, userProfile, desiredCareerPath });
         setResult(optimizationResult);
       } catch (error) {
         console.error("Error optimizing resume:", error);
@@ -69,19 +107,31 @@ export default function ResumeOptimizerPage() {
     });
   };
 
+  const isSubmitDisabled = isPending || loadingProfile || !selectedFile || !desiredCareerPath;
+
   return (
     <div className="grid gap-6 lg:grid-cols-2">
       <Card>
         <CardHeader>
-          <CardTitle>Resume Optimizer</CardTitle>
+          <CardTitle>Strategic Resume Optimizer</CardTitle>
           <CardDescription>
-            Upload your resume and our AI will help you improve it.
+            Upload your resume, specify your dream job, and our AI will enhance it using your full profile.
           </CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="space-y-2">
-              <label htmlFor="resume-upload" className="font-medium text-sm">Upload Resume</label>
+              <Label htmlFor="career-path">Desired Career Path</Label>
+              <Input
+                id="career-path"
+                placeholder="e.g., Senior Frontend Developer"
+                value={desiredCareerPath}
+                onChange={(e) => setDesiredCareerPath(e.target.value)}
+                disabled={isPending || loadingProfile}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="resume-upload">Upload Resume</Label>
               <div
                 className="flex items-center justify-center w-full"
                 onClick={() => fileInputRef.current?.click()}
@@ -114,9 +164,11 @@ export default function ResumeOptimizerPage() {
                 </p>
               )}
             </div>
-            <Button type="submit" disabled={isPending || !selectedFile}>
+            <Button type="submit" disabled={isSubmitDisabled}>
               {isPending ? (
                 <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Optimizing...</>
+              ) : loadingProfile ? (
+                 <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Loading Profile...</>
               ) : (
                 <><Sparkles className="mr-2 h-4 w-4" /> Optimize Resume</>
               )}
@@ -133,15 +185,15 @@ export default function ResumeOptimizerPage() {
             </div>
         )}
         {result && (
-          <Card className="w-full h-full max-h-[70vh]">
+          <Card className="w-full h-full max-h-[80vh]">
             <CardHeader>
-              <CardTitle>Optimized Resume</CardTitle>
+              <CardTitle>Your Enhanced Resume</CardTitle>
               <CardDescription>
-                Your AI-enhanced resume is ready. Copy the text below.
+                This AI-enhanced resume is tailored to your desired career path.
               </CardDescription>
             </CardHeader>
             <CardContent className="h-full">
-              <pre className="p-4 h-[calc(70vh-120px)] overflow-auto rounded-md bg-muted text-sm whitespace-pre-wrap font-sans">
+              <pre className="p-4 h-[calc(80vh-120px)] overflow-auto rounded-md bg-muted text-sm whitespace-pre-wrap font-sans">
                 {result.optimizedResume}
               </pre>
             </CardContent>
