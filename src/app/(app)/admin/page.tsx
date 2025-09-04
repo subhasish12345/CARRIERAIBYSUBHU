@@ -176,9 +176,21 @@ export default function AdminPage() {
   const [loadingJobs, setLoadingJobs] = useState(true);
   const [loadingCourses, setLoadingCourses] = useState(true);
   const [isDeleting, setIsDeleting] = useState<string | null>(null);
+  const [isAuthorized, setIsAuthorized] = useState(false);
 
   useEffect(() => {
-    if (!user) return;
+    if (authLoading) {
+      return; 
+    }
+    if (!user || user.email !== 'sadmisn@gmail.com') {
+      router.replace('/dashboard');
+    } else {
+      setIsAuthorized(true);
+    }
+  }, [user, authLoading, router]);
+
+  useEffect(() => {
+    if (!isAuthorized) return;
     
     const jobsQuery = query(collection(db, "jobs"));
     const jobsUnsubscribe = onSnapshot(jobsQuery, (snapshot) => {
@@ -187,6 +199,9 @@ export default function AdminPage() {
             jobsData.push({ id: doc.id, ...doc.data() } as JobListing);
         });
         setJobs(jobsData);
+        setLoadingJobs(false);
+    }, (error) => {
+        console.error("Error fetching jobs:", error);
         setLoadingJobs(false);
     });
 
@@ -198,27 +213,22 @@ export default function AdminPage() {
         });
         setCourses(coursesData);
         setLoadingCourses(false);
+    }, (error) => {
+        console.error("Error fetching courses:", error);
+        setLoadingCourses(false);
     });
 
     return () => {
         jobsUnsubscribe();
         coursesUnsubscribe();
     };
-  }, [user]);
+  }, [isAuthorized]);
 
-  if (authLoading) {
+  if (authLoading || !isAuthorized) {
     return (
       <div className="flex items-center justify-center h-full">
         <Loader2 className="h-12 w-12 animate-spin text-primary" />
-      </div>
-    );
-  }
-
-  if (user?.email !== 'sadmisn@gmail.com') {
-    router.replace('/dashboard');
-    return (
-      <div className="flex items-center justify-center h-full">
-        <p>Access Denied. Redirecting...</p>
+        <p className="ml-4">Verifying access...</p>
       </div>
     );
   }
@@ -627,5 +637,3 @@ export default function AdminPage() {
     </div>
   );
 }
-
-    
