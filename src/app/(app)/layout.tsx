@@ -85,7 +85,7 @@ function AppSidebar() {
 
 function AppHeader() {
   return (
-    <header className="sticky top-0 z-10 flex h-14 items-center gap-4 border-b bg-card px-4 sm:h-16 sm:px-6">
+    <header className="sticky top-0 z-10 flex h-14 items-center gap-4 border-b border-border/40 bg-card/50 px-4 backdrop-blur-sm sm:h-16 sm:px-6">
       <SidebarTrigger variant="outline" size="icon" className="sm:hidden" />
       <div className="flex-1" />
       <DarkModeToggle />
