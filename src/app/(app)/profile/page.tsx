@@ -57,6 +57,7 @@ export default function ProfilePage() {
   const [user, setUser] = useState<User | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [initialDataLoaded, setInitialDataLoaded] = useState(false);
   const router = useRouter();
 
   const form = useForm<ProfileFormData>({
@@ -79,15 +80,14 @@ export default function ProfilePage() {
       } else {
         router.push('/login');
       }
+      setLoading(false);
     });
     return () => unsubscribeAuth();
   }, [router]);
   
   useEffect(() => {
-    if (!user) {
-        setLoading(false);
-        return;
-    }
+    if (!user || initialDataLoaded) return;
+    
     const docRef = doc(db, 'users', user.uid);
     const unsubscribeSnapshot = onSnapshot(docRef, (docSnap) => {
         if (docSnap.exists()) {
@@ -104,16 +104,14 @@ export default function ProfilePage() {
                 tools: profileData.tools?.map((value) => ({ value })) || [],
             });
         }
-        setLoading(false);
+        setInitialDataLoaded(true);
     }, (error) => {
         console.error("Error listening to profile changes:", error);
-        setLoading(false);
+        setInitialDataLoaded(true);
     });
 
-    return () => {
-        unsubscribeSnapshot();
-    };
-}, [user, form.reset]);
+    return () => unsubscribeSnapshot();
+}, [user, initialDataLoaded]);
 
 
   const onSubmit = async (data: ProfileFormData) => {
