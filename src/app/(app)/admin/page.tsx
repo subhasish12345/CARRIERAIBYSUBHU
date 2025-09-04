@@ -32,7 +32,6 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import type { JobListing } from '@/types/job-listing';
 import type { Course } from '@/types/course';
 import Image from 'next/image';
-import Link from 'next/link';
 
 
 const initialJobPostings: Omit<JobListing, 'id'>[] = [
@@ -338,13 +337,16 @@ export default function AdminPage() {
   const handleDelete = async (collectionName: string, id: string) => {
     setIsDeleting(id);
     try {
+        if (!id) {
+            throw new Error("Document ID is required for deletion.");
+        }
         await deleteDoc(doc(db, collectionName, id));
         toast({
             title: 'Success',
             description: `${collectionName === 'jobs' ? 'Job' : 'Course'} deleted successfully.`,
         });
     } catch (error) {
-        console.error(`Error deleting ${collectionName}:`, error);
+        console.error(`Error deleting document from ${collectionName}:`, error);
         toast({
             variant: 'destructive',
             title: 'Error',
