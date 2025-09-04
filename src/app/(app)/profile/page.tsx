@@ -84,35 +84,36 @@ export default function ProfilePage() {
   }, [router]);
   
   useEffect(() => {
-    let unsubscribeSnapshot: (() => void) | undefined;
-    if (user) {
-        const docRef = doc(db, 'users', user.uid);
-        unsubscribeSnapshot = onSnapshot(docRef, (docSnap) => {
-            if (docSnap.exists()) {
-                const profileData = docSnap.data() as UserProfile;
-                form.reset({
-                    ...getNewUserProfile(),
-                    ...profileData,
-                    internships: profileData.internships?.map((value) => ({ value })) || [],
-                    certifications: profileData.certifications?.map((value) => ({ value })) || [],
-                    courses: profileData.courses?.map((value) => ({ value })) || [],
-                    languages: profileData.languages?.map((value) => ({ value })) || [],
-                    programmingLanguages: profileData.programmingLanguages?.map((value) => ({ value })) || [],
-                    projects: profileData.projects?.map((value) => ({ value })) || [],
-                    tools: profileData.tools?.map((value) => ({ value })) || [],
-                });
-            }
-            setLoading(false);
-        });
-    } else {
+    if (!user) {
         setLoading(false);
+        return;
     }
-    return () => {
-        if (unsubscribeSnapshot) {
-            unsubscribeSnapshot();
+    const docRef = doc(db, 'users', user.uid);
+    const unsubscribeSnapshot = onSnapshot(docRef, (docSnap) => {
+        if (docSnap.exists()) {
+            const profileData = docSnap.data() as UserProfile;
+            form.reset({
+                ...getNewUserProfile(),
+                ...profileData,
+                internships: profileData.internships?.map((value) => ({ value })) || [],
+                certifications: profileData.certifications?.map((value) => ({ value })) || [],
+                courses: profileData.courses?.map((value) => ({ value })) || [],
+                languages: profileData.languages?.map((value) => ({ value })) || [],
+                programmingLanguages: profileData.programmingLanguages?.map((value) => ({ value })) || [],
+                projects: profileData.projects?.map((value) => ({ value })) || [],
+                tools: profileData.tools?.map((value) => ({ value })) || [],
+            });
         }
+        setLoading(false);
+    }, (error) => {
+        console.error("Error listening to profile changes:", error);
+        setLoading(false);
+    });
+
+    return () => {
+        unsubscribeSnapshot();
     };
-}, [user, form]);
+}, [user, form.reset]);
 
 
   const onSubmit = async (data: ProfileFormData) => {
@@ -137,7 +138,7 @@ export default function ProfilePage() {
           tools: data.tools?.map(item => item.value).filter(Boolean),
       };
       await setDoc(doc(db, "users", user.uid), profileToSave, { merge: true });
-      toast({ title: "Success", description: "Your profile has been updated successfully." });
+      toast({ title: "Update successfully", description: "Your profile has been updated successfully." });
     } catch (error) {
       console.error("Error updating profile:", error);
       toast({ variant: "destructive", title: "Error", description: "Failed to update profile. Please try again." });
@@ -290,7 +291,7 @@ export default function ProfilePage() {
                 {renderArrayFields("Internships", internshipFields, internshipAppend, internshipRemove, "internships")}
                 {renderArrayFields("Certifications", certificationFields, certificationAppend, certificationRemove, "certifications")}
                 {renderArrayFields("Courses", courseFields, courseAppend, courseRemove, "courses")}
-          </CardContent>
+            </CardContent>
         </Card>
 
         <Card>
@@ -309,15 +310,13 @@ export default function ProfilePage() {
             </CardContent>
         </Card>
 
-        <div className="flex justify-end">
-          <Button type="submit" disabled={isSaving}>
+        <div className="flex justify-center py-8">
+          <Button type="submit" disabled={isSaving} size="lg">
             {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            Save Changes
+            Update
           </Button>
         </div>
       </form>
     </div>
   );
 }
-
-    
